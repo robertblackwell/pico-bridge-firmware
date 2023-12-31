@@ -79,7 +79,14 @@ void robot_tasks_run()
     motion_task();
     report_task();
 }
-
+void robot_reporter_task_run()
+{
+    report_task();
+}
+void robot_set_raw_pwm_percent(double left_pwm_percent, double right_pwm_percent)
+{
+    motion_controller.set_raw_pwm_percent(left_pwm_percent, right_pwm_percent);
+}
 void robot_set_pwm_percent(double left_pwm_percent, double right_pwm_percent)
 {
     motion_controller.set_pwm_percent(left_pwm_percent, right_pwm_percent);

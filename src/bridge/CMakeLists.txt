@@ -28,6 +28,8 @@ add_executable(bridge
     ${COMMON_SRC_DIR}/motion.cpp
     ${COMMON_SRC_DIR}/reporter.h
     ${COMMON_SRC_DIR}/reporter.cpp
+    ${COMMON_SRC_DIR}/robot.h
+    ${COMMON_SRC_DIR}/robot.cpp
     ${COMMON_SRC_DIR}/task.h
     ${COMMON_SRC_DIR}/transport.h
     ${COMMON_SRC_DIR}/transport.cpp

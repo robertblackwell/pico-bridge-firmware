@@ -64,9 +64,9 @@ void test_updown(DRI0002V1_4& dri0002)
 			test01(dri0002, p);
 		}
 		dri0002.set_pwm_percent(MotorSide::left, 0.0);
-		dri0002.set_direction_pin_state(MotorSide::left, !dri0002.get_direction_pin_state(MotorSide::left));
+		dri0002.set_direction_pin_state(MotorSide::left, reverse_motor_direction(dri0002.get_direction_pin_state(MotorSide::left)));
 		dri0002.set_pwm_percent(MotorSide::right, 0.0);
-		dri0002.set_direction_pin_state(MotorSide::right, !dri0002.get_direction_pin_state(MotorSide::right));
+		dri0002.set_direction_pin_state(MotorSide::right, reverse_motor_direction(dri0002.get_direction_pin_state(MotorSide::right)));
 	}
 }
 

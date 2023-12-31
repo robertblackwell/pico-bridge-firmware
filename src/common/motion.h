@@ -43,13 +43,13 @@ class MotionControl : public Taskable
     };
     struct Side
     {
-        Encoder     *m_encoder_ptr;
-        Pid         m_pid;
-        RpmValue    m_rpm_value;
-        MotorSide   m_dri0002_motor_side;
-        bool        m_default_direction;
-        double      m_rpm_target;
-        bool        m_pid_active;
+        Encoder        *m_encoder_ptr;
+        Pid             m_pid;
+        RpmValue        m_rpm_value;
+        MotorSide       m_dri0002_motor_side;
+        MotorDirection  m_default_direction;
+        double          m_rpm_target;
+        bool            m_pid_active;
     };
 
 public:
@@ -62,6 +62,7 @@ public:
     PwmPiPico* dri002_right_side(); 
     void set_pwm_direction(double pwm_motor_left, MotorDirection direction_left, double pwm_motor_right, MotorDirection direction_right);
     void pid_set_rpm(double left_rpm, double right_rpm);
+    void set_raw_pwm_percent(double percent_1, double percent_2);
     void set_pwm_percent(double percent_1, double percent_2);
     void update_pid(double kp, double ki, double kd);
     void stop_all();

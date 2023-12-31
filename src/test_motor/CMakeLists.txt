@@ -12,6 +12,8 @@ add_executable(motor_test
     motor_test.cpp
     ${COMMON_SRC_DIR}/trace.cpp
     ${COMMON_SRC_DIR}/trace.h
+    ${COMMON_SRC_DIR}/enum.h
+    ${COMMON_SRC_DIR}/enum.cpp
     ${COMMON_SRC_DIR}/dri0002.h
     ${COMMON_SRC_DIR}/dri0002.cpp
     )

@@ -7,6 +7,19 @@ enum MotorDirection {
     forward = 1,
     backwards = -1,
 };
+
+// MotorDirection reverse_direction(MotorDirection d) 
+// {
+//     switch(d) {
+//         case MotorDirection::forward:
+//             return MotorDirection::backwards;
+//             break;
+//         default:
+//             return MotorDirection::forward;
+//             break;
+//     }
+// }
+
 enum MotorSide 
 {
 	left = MOTOR_LEFT_DRI0002_SIDE,

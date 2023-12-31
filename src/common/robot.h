@@ -3,6 +3,8 @@
 
 void robot_init();
 void robot_tasks_run();
+void robot_reporter_task_run();
+void robot_set_raw_pwm_percent(double left_pwm_percent, double right_pwm_percent);
 void robot_set_pwm_percent(double left_pwm_percent, double right_pwm_percent);
 void robot_set_rpm(double left_rpm, double right_rpm);
 void robot_stop_all();

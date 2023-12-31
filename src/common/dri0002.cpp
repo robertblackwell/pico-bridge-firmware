@@ -28,7 +28,7 @@ void PwmPiPico::begin(uint pwm_pin, uint direction_pin, uint wrap) {
 	m_wrap = wrap;
 	gpio_init(m_direction_pin);
 	gpio_set_dir(m_direction_pin, GPIO_OUT);
-	m_direction = true;
+	m_direction = MotorDirection::forward;
 	gpio_put(m_direction_pin, (m_direction)?1:0);
 
 	m_slice_num = pwm_gpio_to_slice_num(m_pwm_pin);
@@ -53,7 +53,7 @@ void PwmPiPico::set_level(uint level)
 {
 	FTRACE("PicoPwm::set_level addr: %p pin: %u wrap:%u level:%u slice_num %u channel: %u direction: %d\n", 
 		this, m_pwm_pin, m_wrap, level, m_slice_num, m_channel, (int)m_direction)
-	gpio_put(m_direction_pin, (m_direction)?1:0);
+	gpio_put(m_direction_pin, (m_direction == MotorDirection::forward)?1:0);
 	pwm_set_chan_level(m_slice_num, m_channel, level);
 	pwm_set_enabled(m_slice_num, true);
 }
@@ -64,14 +64,25 @@ void PwmPiPico::set_pwm_percent(double percent)
 	uint level = (uint)65534 * percent / 100;
 	this->set_level(level);
 }
-void PwmPiPico::set_direction(bool dir)
+// void PwmPiPico::set_direction(bool dir)
+// {
+// 	FTRACE("PwmPiPico old dir: %d new dir %d \n", m_direction, dir);
+// 	if(m_direction != dir) {
+// 		FTRACE("PwmPiPico old dir: %d new dir %d \n", m_direction, dir);
+// 		m_direction = dir;
+// 		gpio_put(m_direction_pin, (m_direction)? 1: 0);
+// 	}
+// }
+void PwmPiPico::set_direction(MotorDirection dir)
 {
-	FTRACE("PwmPiPico old dir: %d new dir %d \n", m_direction, dir);
-	if(m_direction != dir) {
-		FTRACE("PwmPiPico old dir: %d new dir %d \n", m_direction, dir);
+	printf("PwmPiPico::set_direction old dir: %d new dir %d \n", m_direction, dir);
+	// if(m_direction != dir) {
+		printf("PwmPiPico::set_diredction settig old dir: %d new dir %d \n", m_direction, dir);
 		m_direction = dir;
-		gpio_put(m_direction_pin, (m_direction)? 1: 0);
-	}
+		int bit = (m_direction == MotorDirection::forward)? 1: 0;
+		printf("PwmPiPico::set_direction bit %d\n", bit);
+		gpio_put(m_direction_pin, bit);
+	// }
 }
 void PwmPiPico::set_duty_cycle_percent(double percent)
 {
@@ -100,8 +111,8 @@ void DRI0002V1_4::begin(uint e1m1_side_index, int pin_E1, int pin_M1, uint e2m2_
 	m_pwm_2.begin(m_pin_E2, m_pin_M2, 65534);
 	m_sides[e1m1_side_index-1] = (e1m1_side_index-1 == 0) ? &m_pwm_1: &m_pwm_2;
 	m_sides[e2m2_side_index-1] = (e2m2_side_index-1 == 0) ? &m_pwm_1: &m_pwm_2;
-	m_sides[0]->set_direction(true);
-	m_sides[1]->set_direction(false);
+	m_sides[0]->set_direction(MotorDirection::forward);
+	m_sides[1]->set_direction(MotorDirection::forward);
 	FTRACE("DRI0002:  %p \n\te1m1_index %d pin_E1: %d pin_M1: %d \n\te2m2_index: %d pin_E2: %d pin_M2: %d\n", 
 		this, e1m1_side_index, m_pin_E1, m_pin_M1, e2m2_side_index, m_pin_E2, m_pin_M2)
 }
@@ -123,11 +134,19 @@ void DRI0002V1_4::set_pwm_percent(MotorSide side, double percent)
 }
 /**
  * direction of the motor is determined by the state of the DRI0002  m1 or m2 pin.
- * This code mapds the value of 'bool direction' tp m pin state as:
- * true -> m pin high
- * false-> m pin low
+ * This code maps the value of 'MotorDirction direction' to m pin state as:
+ * MotorDirection::forward   -> m pin high
+ * MotorDirection::backwards -> m pin low
 */
-void DRI0002V1_4::set_direction_pin_state(MotorSide side, bool direction)
+// void DRI0002V1_4::set_direction_pin_state(MotorSide side, bool direction)
+// {
+// 	uint local_index = side2index(side);
+// 	ASSERT_PRINTF((((0 <= local_index) && (local_index <= 1))), "DRI0002 - set_direction index out of range %d ", local_index);
+// 	FTRACE("DRI0002 set_direction index: %d old direction: %d new direction: %d\n", side2value(side), (int)m_sides[local_index]->m_direction, (int)direction);
+// 	m_sides[local_index]->set_direction(direction);
+// 	FTRACE("DRI0002 set_direction index: %d direction: %d \n", side2value(side), (int)m_sides[local_index]->m_direction);
+// }
+void DRI0002V1_4::set_direction_pin_state(MotorSide side, MotorDirection direction)
 {
 	uint local_index = side2index(side);
 	ASSERT_PRINTF((((0 <= local_index) && (local_index <= 1))), "DRI0002 - set_direction index out of range %d ", local_index);
@@ -135,7 +154,8 @@ void DRI0002V1_4::set_direction_pin_state(MotorSide side, bool direction)
 	m_sides[local_index]->set_direction(direction);
 	FTRACE("DRI0002 set_direction index: %d direction: %d \n", side2value(side), (int)m_sides[local_index]->m_direction);
 }
-bool DRI0002V1_4::get_direction_pin_state(MotorSide side)
+
+MotorDirection DRI0002V1_4::get_direction_pin_state(MotorSide side)
 {
 	uint local_index = side2index(side);
 	ASSERT_PRINTF((((0 <= local_index) && (local_index <= 1))), "DRI0002 - set_pwm_percent index out of range %d ", local_index);

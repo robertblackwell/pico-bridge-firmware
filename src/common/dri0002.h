@@ -17,7 +17,7 @@ struct PwmPiPico
 	uint m_slice_num;
 	uint m_channel;
 	uint m_direction_pin;
-	bool m_direction;
+	MotorDirection m_direction;
 	void begin(uint pwm_pin, uint direction_pin, uint wrap);
 	void set_level(uint level);
 	/**
@@ -28,7 +28,7 @@ struct PwmPiPico
 	 * direction of rotation cannot be changes via a pwm setting using an instance of DRI0002V1_4
 	*/
 	void set_pwm_percent(double percent);
-	void set_direction(bool dir_pin_state);
+	void set_direction(MotorDirection direction);
 	void set_duty_cycle_percent(double percent);
 };
 /**
@@ -64,8 +64,10 @@ class DRI0002V1_4
 	 * true -> m pin high
 	 * false-> m pin low
 	*/
-	void set_direction_pin_state(MotorSide side, bool direction_pin_state);
-	bool get_direction_pin_state(MotorSide side);
+	// void set_direction_pin_state(MotorSide side, bool direction_pin_state);
+	void set_direction_pin_state(MotorSide side, MotorDirection direction);
+	
+	MotorDirection get_direction_pin_state(MotorSide side);
 	PwmPiPico* get_pwmpipico(MotorSide side);
 
 	private:
@@ -77,7 +79,7 @@ class DRI0002V1_4
 	PwmPiPico m_pwm_1;
 	PwmPiPico m_pwm_2;
 	PwmPiPico* m_sides[2];
-	bool m_direction[2];
+	MotorDirection m_direction[2];
 
 
 };

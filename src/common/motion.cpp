@@ -1,4 +1,5 @@
-#undef FTRACE_ON
+#define FTRACE_ON
+#include <math.h>
 #include "config.h"
 #include <enum.h>
 #include "trace.h"
@@ -51,7 +52,7 @@ void MotionControl::set_rpm_one_side(Side& side, RpmValue new_request)
 		FTRACE("before pin state\n");
 		bool direction_pin_state = motor_direction_to_pin_state(side.m_dri0002_motor_side, new_request.direction);
 		FTRACE("after pin state motor_side %s  nr.dir% s pin% d\n", to_string(side.m_dri0002_motor_side), motor_direction_to_string(new_request.direction), (int) direction_pin_state);
-		m_dri0002_ptr->set_direction_pin_state(side.m_dri0002_motor_side, direction_pin_state);
+		m_dri0002_ptr->set_direction_pin_state(side.m_dri0002_motor_side, new_request.direction);
 		
 		FTRACE("BB set_rpm_one_side %p rpm_value value: %f is_zero: %d direction: %s raw: %f m_pid.m_target% f\n",
 			&ss, ss.value, (int)ss.is_zero, 
@@ -68,7 +69,7 @@ void MotionControl::set_rpm_one_side(Side& side, RpmValue new_request)
 		m_dri0002_ptr->set_pwm_percent( side.m_dri0002_motor_side, 0.0);
 
 		bool direction_pin_state = motor_direction_to_pin_state(side.m_dri0002_motor_side, new_request.direction);
-		m_dri0002_ptr->set_direction_pin_state(side.m_dri0002_motor_side, direction_pin_state);
+		m_dri0002_ptr->set_direction_pin_state(side.m_dri0002_motor_side, new_request.direction);
 
 		RpmValue& ss = side.m_rpm_value;
 		FTRACE("CC set_rpm_one_side %p rpm_value value: %f is_zero: %d direction: %s raw: %f m_pid.m_target% f\n",
@@ -102,7 +103,7 @@ void MotionControl::begin(DRI0002V1_4 *dri0002, Encoder *encoder_left_ptr, Encod
 	m_left_side.m_rpm_target = 0.0;
 	m_left_side.m_rpm_value = RpmValue{0.0};
 	m_left_side.m_dri0002_motor_side = MotorSide::left;
-	m_left_side.m_default_direction = true;
+	m_left_side.m_default_direction = MotorDirection::forward;
     
 	m_right_side.m_encoder_ptr = encoder_right_ptr;
 	m_right_side.m_pid.begin(PID_RIGHT_KP_DEFAULT, PID_RIGHT_KI_DEFAULT, PID_RIGHT_KD_DEFAULT, 0.0, 0.0);
@@ -110,7 +111,7 @@ void MotionControl::begin(DRI0002V1_4 *dri0002, Encoder *encoder_left_ptr, Encod
 	m_right_side.m_rpm_target = 0.0;
 	m_right_side.m_rpm_value = RpmValue{0.0};
 	m_right_side.m_dri0002_motor_side = MotorSide::right;
-	m_left_side.m_default_direction = true;
+	m_left_side.m_default_direction = MotorDirection::forward;
 }
 // void begin(Motor& motor_01, Motor& motor_02, Encoder& encoder_01, Encoder& encoder_02);
 void MotionControl::set_pwm_direction(double pwm_motor_left, MotorDirection direction_left, double pwm_motor_right, MotorDirection direction_right)
@@ -132,7 +133,17 @@ void MotionControl::pid_set_rpm(double left_rpm, double right_rpm)
 	set_rpm_one_side(m_left_side, RpmValue{left_rpm});
 	set_rpm_one_side(m_right_side, RpmValue{right_rpm});
 }
-
+void MotionControl::set_raw_pwm_percent(double percent_1, double percent_2)
+{
+    FTRACE("Motion::set_pwm_percent percent_1: %f percent_2: %f\n", percent_1, percent_2);
+	MotorDirection dl = (percent_1 > 0.0) ? MotorDirection::forward : MotorDirection::backwards;
+	MotorDirection dr = (percent_2 > 0.0) ? MotorDirection::forward : MotorDirection::backwards;
+	FTRACE("dl %s dr %s \n", motor_direction_to_string(dl), motor_direction_to_string(dr))
+	m_dri0002_ptr->set_direction_pin_state(MotorSide::left, dl);
+	m_dri0002_ptr->set_direction_pin_state(MotorSide::right, dr);
+    m_dri0002_ptr->set_pwm_percent(MotorSide::left, fabs(percent_1));
+    m_dri0002_ptr->set_pwm_percent(MotorSide::right, fabs(percent_2));
+}
 void MotionControl::set_pwm_percent(double percent_1, double percent_2)
 {
     FTRACE("Motion::set_pwm_percent percent_1: %f percent_2: %f\n", percent_1, percent_2);
