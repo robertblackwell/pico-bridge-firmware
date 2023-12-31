@@ -2,7 +2,7 @@
 #define FTRACE_ON
 #include <stdlib.h>
 #include "commands.h"
-#include "utils.h"
+#include "trace.h"
 
 #define CLI_STATE_START 1
 #define CLI_STATE_READING_LINE 2

@@ -1,5 +1,5 @@
 #undef TRACE_ON
-#include <utils.h>
+#include "trace.h"
 #include <transport.h>
 #define TRANSPORT_START_SENTINEL "/**AA**/"
 #define TRANSPORT_END_SENTINEL "/**BB**/"

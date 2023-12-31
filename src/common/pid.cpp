@@ -1,6 +1,6 @@
 #include "pid.h"
 #include <config.h>
-#include "utils.h"
+#include "trace.h"
 Pid::Pid()
 {
     m_target = 0.0;

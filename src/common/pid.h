@@ -1,6 +1,5 @@
 #ifndef H_pid_h
 #define H_pid_h
-#include "utils.h"
 class Pid
 {
     public:

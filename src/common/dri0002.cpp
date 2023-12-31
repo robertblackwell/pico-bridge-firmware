@@ -8,9 +8,10 @@
 #include <pico/stdlib.h>
 #include <hardware/gpio.h>
 #include <hardware/pwm.h>
-#include <utils.h>
 
+#include "trace.h"
 #include "config.h"
+
 int side2index(MotorSide side) {
 	int ix = (side == MotorSide::left) ? MOTOR_LEFT_DRI0002_SIDE - 1 : MOTOR_RIGHT_DRI0002_SIDE - 1;
 	return ix;

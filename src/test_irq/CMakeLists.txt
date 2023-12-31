@@ -1,8 +1,8 @@
 # cmake set(TARGET test_irq)
 add_executable(test_irq 
     test_irq.cpp
-    ${COMMON_SRC_DIR}/utils.cpp
-    ${COMMON_SRC_DIR}/utils.h
+    ${COMMON_SRC_DIR}/trace.cpp
+    ${COMMON_SRC_DIR}/trace.h
     ${COMMON_SRC_DIR}/pico_gpio_irq_dispatcher.h
     ${COMMON_SRC_DIR}/pico_gpio_irq_dispatcher.cpp
 )

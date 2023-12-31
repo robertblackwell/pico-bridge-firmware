@@ -1,12 +1,12 @@
 #undef FTRACE_ON
 #include "config.h"
 #include <enum.h>
-#include "utils.h"
-#include <motion.h>
-#include <task.h>
-#include <dri0002.h>
-#include <encoder.h>
-#include <pid.h>
+#include "trace.h"
+#include "motion.h"
+#include "task.h"
+#include "dri0002.h"
+#include "encoder.h"
+#include "pid.h"
 
 
 void MotionControl::set_rpm_one_side(Side& side, RpmValue new_request)

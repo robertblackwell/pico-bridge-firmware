@@ -2,9 +2,10 @@
 #undef FDEBUG_ON
 #include <stdio.h>
 #include <pico/stdio.h>
+
 #include <pico_gpio_irq_dispatcher.h>
 #include "config.h"
-#include "utils.h"
+#include "trace.h"
 #include "encoder.h"
 #include "reporter.h"
 

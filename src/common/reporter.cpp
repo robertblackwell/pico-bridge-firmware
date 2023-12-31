@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <transport.h>
-#include <utils.h>
+#include "trace.h"
 #include "reporter.h"
 
 int sprintf_sample(char* buffer, EncoderSample* sample_ptr);

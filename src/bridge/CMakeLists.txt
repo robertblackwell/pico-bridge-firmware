@@ -12,8 +12,8 @@ add_executable(bridge
     bridge.cpp
     ${COMMON_SRC_DIR}/enum.cpp
     ${COMMON_SRC_DIR}/enum.h
-    ${COMMON_SRC_DIR}/utils.cpp
-    ${COMMON_SRC_DIR}/utils.h
+    ${COMMON_SRC_DIR}/trace.cpp
+    ${COMMON_SRC_DIR}/trace.h
     ${COMMON_SRC_DIR}/dri0002.h
     ${COMMON_SRC_DIR}/dri0002.cpp
     ${COMMON_SRC_DIR}/encoder.h

@@ -6,7 +6,7 @@
 #include <pico/error.h>
 #endif
 #undef FTRACE_ON
-#include "utils.h"
+#include "trace.h"
 #include "cli.h"
 
 #define CLI_STATE_START 1

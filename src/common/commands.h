@@ -1,7 +1,7 @@
 #ifndef H_commands_h
 #define H_commands_h
 // #include "Arduino.h"
-#include <utils.h>
+#include "trace.h"
 // #include <log.h>
 #include "cli.h"
 

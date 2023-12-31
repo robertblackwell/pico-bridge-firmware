@@ -10,8 +10,8 @@ message("COMMON_SRC_DIR    ${COMMON_SRC_DIR}")
 
 add_executable(motor_test 
     motor_test.cpp
-    ${COMMON_SRC_DIR}/utils.cpp
-    ${COMMON_SRC_DIR}/utils.h
+    ${COMMON_SRC_DIR}/trace.cpp
+    ${COMMON_SRC_DIR}/trace.h
     ${COMMON_SRC_DIR}/dri0002.h
     ${COMMON_SRC_DIR}/dri0002.cpp
     )

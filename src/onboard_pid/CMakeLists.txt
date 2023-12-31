@@ -15,8 +15,8 @@ add_executable(${TargetName}
     main.cpp
     ${COMMON_SRC_DIR}/enum.cpp
     ${COMMON_SRC_DIR}/enum.h
-    ${COMMON_SRC_DIR}/utils.cpp
-    ${COMMON_SRC_DIR}/utils.h
+    ${COMMON_SRC_DIR}/trace.cpp
+    ${COMMON_SRC_DIR}/trace.h
     ${COMMON_SRC_DIR}/dri0002.h
     ${COMMON_SRC_DIR}/dri0002.cpp
     ${COMMON_SRC_DIR}/encoder.h
@@ -31,6 +31,9 @@ add_executable(${TargetName}
     ${COMMON_SRC_DIR}/motion.cpp
     ${COMMON_SRC_DIR}/reporter.h
     ${COMMON_SRC_DIR}/reporter.cpp
+    ${COMMON_SRC_DIR}/robot.h
+    ${COMMON_SRC_DIR}/robot.cpp
+
     ${COMMON_SRC_DIR}/task.h
     ${COMMON_SRC_DIR}/transport.h
     ${COMMON_SRC_DIR}/transport.cpp

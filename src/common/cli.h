@@ -1,6 +1,5 @@
 #ifndef H_cli_h
 #define H_cli_h
-// #include "Arduino.h"
 
 #define CLI_BUFFER_MAX 100 // the maximum length of a command line
 #define CLI_TOKENS_MAX 10  // the max number of tokens - max value of argc

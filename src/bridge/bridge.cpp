@@ -22,76 +22,64 @@
 
 Cli cli;
 CommandBuffer command_buffer;
-DRI0002V1_4 dri0002;
-Encoder *encoder_left_ptr;
-Encoder *encoder_right_ptr;
-MotionControl motion;
-Reporter reporter;
-
-void sample_collect();
-void execute_commands();
-void config_dump();
-bool chars_available_flag = false;
-int callback_count = 0;
-void chars_available(void* arg) {
-	chars_available_flag = true;
-	callback_count++;
-	char* s = (char*)(arg);
-	printf("Chars available callback %s\n", s);
-}
-int main()
-{
-	// const int pin_e1 = 15;
-	// const int pin_m1 = 14;
-	// const int pin_e2 = 3;
-	// const int pin_m2 = 2;
-	stdio_init_all();
-	while (!tud_cdc_connected())
-	{
-		sleep_ms(100);
-	}
-	printf("stdio started\n");
-	stdio_set_chars_available_callback(&chars_available, (void*)"This is a callback arg" );
-	/**
-	 * This next line is making a configuration decisions.
-	 * It assigns 
-	 * MOTOR_LEFT to E2 and M2
-	 * MOTOR_RIGHT to E1 and M1
-	*/
-	dri0002.begin(
+#define RAII_ENCODER
+#ifdef RAII_ENCODER
+/*
+************************************************************************
+* RAII initialization
+************************************************************************
+*/
+DRI0002V1_4 dri0002{
 		MOTOR_RIGHT_DRI0002_SIDE, 
 		MOTOR_RIGHT_PWM_PIN, 				// E1
 		MOTOR_RIGHT_DIRECTION_SELECT_PIN, 	// M1
 		
 		MOTOR_LEFT_DRI0002_SIDE, 
 		MOTOR_LEFT_PWM_PIN, 				// E2
-		MOTOR_LEFT_DIRECTION_SELECT_PIN);	// E2
-	encoder_left_ptr = make_encoder_left();
-	encoder_left_ptr->begin(MOTOR_LEFT_ID, MOTOR_LEFT_NAME, MOTOR_LEFT_ENCODER_A_INT, MOTOR_LEFT_ENCODER_B_INT);
-	encoder_right_ptr = make_encoder_right();
-	encoder_right_ptr->begin(MOTOR_RIGHT_ID, MOTOR_RIGHT_NAME, MOTOR_RIGHT_ENCODER_A_INT, MOTOR_RIGHT_ENCODER_B_INT);
-	motion.begin(&dri0002, encoder_left_ptr, encoder_right_ptr);
-	reporter.begin(encoder_left_ptr, encoder_right_ptr);
-	printf("After begin calls\n");
+		MOTOR_LEFT_DIRECTION_SELECT_PIN	    // E2
+};
+
+/**
+ * Encoders must funnel all their interrupts through a common isr handler but must pass a pointer to their
+ * Encoder istance to that common isr. This is the least tricky way I can find of doing that
+*/
+void isr_apin_left();
+void isr_bpin_left();
+
+Encoder encoder_left{MOTOR_LEFT_ID, MOTOR_LEFT_NAME, MOTOR_LEFT_ENCODER_A_INT, MOTOR_LEFT_ENCODER_B_INT, isr_apin_left, isr_bpin_left};
+void isr_apin_left(){encoder_common_isr(&encoder_left);}
+void isr_bpin_left(){ /*encoder_common_isr(&encoder_left)*/;} // only want interrupts on the a-pin
+
+void isr_apin_right();
+void isr_bpin_right();
+Encoder encoder_right{MOTOR_RIGHT_ID, MOTOR_RIGHT_NAME, MOTOR_RIGHT_ENCODER_A_INT, MOTOR_RIGHT_ENCODER_B_INT, isr_apin_right, isr_bpin_right};
+void isr_apin_right(){encoder_common_isr(&encoder_right);}
+void isr_bpin_right(){ /*encoder_common_isr(&encoder_right)*/;} // only want interrupts on the a-pin
+
+Encoder* encoder_left_ptr = &encoder_left;
+Encoder* encoder_right_ptr = &encoder_right;
+MotionControl motion_controller{&dri0002, encoder_left_ptr, encoder_right_ptr};
+Reporter reporter{encoder_left_ptr, encoder_right_ptr};
+/*
+************************************************************************
+* RAII initialization
+************************************************************************
+*/
+#else
+#endif
+int main()
+{
+	stdio_init_all();
+	trace_init();
+	sleep_ms(5000);
+	printf("stdio started\n");
+#ifdef RAII_ENCODER
+	encoder_left_ptr->start_interrupts();
+	encoder_right_ptr->start_interrupts();
+#else
+#endif
 	Task cli_task(20, execute_commands);
-
 	Task report_task(20, &reporter);
-	dump_config(&motion);
-	printf("Starting loop %s\n", "bridge");
-	#if 0
-	while(1) {
-		sleep_ms(50);
-		while(chars_available_flag) {
-
-			int c = getchar_timeout_us(5);
-			if(0 <= c && c <= 255) {
-				printf("got this char: %c  %d cabback count is: %d\n", (char)c, (int)c, callback_count);
-			} else {
-				chars_available_flag = false;
-			}
-		}
-	}
-	#endif
 	while (1)
 	{
 		cli_task();
@@ -125,7 +113,7 @@ void execute_commands()
 				MotorsPwmPercentCommand &c = cref.motors_pwm_percent_command;
 				printf("MotorsPwmPercentCommand m1.pwm: %f m2.pwm:%f\n",
 					c.left_pwm_percent_value, c.right_pwm_percent_value);
-				motion.set_pwm_percent(c.left_pwm_percent_value, c.right_pwm_percent_value);
+				motion_controller.set_pwm_percent(c.left_pwm_percent_value, c.right_pwm_percent_value);
 				break;
 			}
 			case CliCommands::MotorsRpm:
@@ -133,13 +121,13 @@ void execute_commands()
 				MotorsRpmCommand &c = cref.motors_rpm_command;
 				printf("Motors Rpw Command m1.rpm: %f m1.direction %d m2.rpm %f m2.direction %d\n",
 						c.m_left_rpm, c.m_right_rpm);
-				// motion_control.set_pwm_direction(sc.m_left.pwm_value, (int)sc.m_left.direction, sc.m_right.pwm_value, (int)sc.m_right.direction);
+				// motion_controller.set_pwm_direction(sc.m_left.pwm_value, (int)sc.m_left.direction, sc.m_right.pwm_value, (int)sc.m_right.direction);
 				break;
 			}
 			case CliCommands::MotorsHalt:
 			{
 				printf("StopCommand\n");
-				motion.stop_all();
+				motion_controller.stop_all();
 				break;
 			}
 			case CliCommands::EncodersRead:

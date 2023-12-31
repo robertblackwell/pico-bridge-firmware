@@ -5,7 +5,8 @@
 #include <stdint.h>
 #include <pico/types.h>
 #include <hardware/gpio.h>
-#include <utils.h>
+
+#include "trace.h"
 
 PicoGpioIrqDispatcher::PicoGpioIrqDispatcher()
 {

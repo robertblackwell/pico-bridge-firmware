@@ -26,8 +26,8 @@ add_executable(clitest
     clitest.cpp
     ${COMMON_SRC_DIR}/cli.cpp
     ${COMMON_SRC_DIR}/cli.h
-    ${COMMON_SRC_DIR}/utils.cpp
-    ${COMMON_SRC_DIR}/utils.h
+    ${COMMON_SRC_DIR}/trace.cpp
+    ${COMMON_SRC_DIR}/trace.h
     )
 target_include_directories(clitest PRIVATE ${COMMON_SRC_DIR})
 pico_enable_stdio_usb(clitest 1)
@@ -43,8 +43,8 @@ add_executable(${TargetName}
     command_test.cpp
     ${COMMON_SRC_DIR}/cli.cpp
     ${COMMON_SRC_DIR}/cli.h
-    ${COMMON_SRC_DIR}/utils.cpp
-    ${COMMON_SRC_DIR}/utils.h
+    ${COMMON_SRC_DIR}/trace.cpp
+    ${COMMON_SRC_DIR}/trace.h
     ${COMMON_SRC_DIR}/commands.cpp
     ${COMMON_SRC_DIR}/commands.h
     )
