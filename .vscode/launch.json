@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Collect ",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/python/collector.py",
+            "pythonArgs": ["${workspaceFolder}/python/samples/junk"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "plot ",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/python/plot.py",
+            "args": ["--key", "motor_rpm", "--pwm", "65.00", "timestamp_plot", "${workspaceFolder}/python/pico-samples/first"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

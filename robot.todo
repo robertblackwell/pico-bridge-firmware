@@ -1,0 +1,33 @@
+Serial:
+    ✔ complete the code to measure data throughput @done(23-11-29 19:10)
+    ☐ connect pico to Linux via a UART->USB cable 
+        ✔ connect to Linux @done(23-11-29 19:10)
+        ☐ and measure throughput
+        ☐ this will require a program on linux to receive te data
+    ☐ put a serial connector of some kind on the pi pico prototype board
+        ✔ ordered connecters @done(23-12-01 14:31)
+        ☐ once they arrive will modify board - make 2 serial io ports
+
+    ☐ research the ROS2 messages we need to exchange between Raspberry Pi and Pico and get those working with pico and linux
+        ☐ need micro ross and the robot application on the pico
+    ☐ find out how to increase the stack size
+    ☐ investigate picotool and how to examine memory usage
+    
+
+
+Wifi/TCP - not going to worry about this as serial is fast enoug:
+
+    ☐ read the book "Master the Raspberry Pi Pico in C: Wifi and Lwip"
+    ☐ build up the examples
+        ☐ wifi scan, 
+        ☐ connect to house SSID
+        ☐ tcp client ot connect to server on my Linux machine 
+            ☐ will need a simple TCP server on Linux - python has one
+        ☐ Udp client to connect to a Udp server on Linux
+
+    ☐ when all of this is done try using TCP connection for micro-ROS
+
+Pi Pico debug probe:
+    ✔ see if can setup and get working @done(23-12-01 14:29)
+    ☐ try non standard serial port - not yet.
+    ☐ use on robot prototype board

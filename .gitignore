@@ -1,0 +1,4 @@
+.pio/*
+build/
+python/dashboard 
+src-saved

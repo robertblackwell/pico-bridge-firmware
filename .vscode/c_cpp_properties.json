@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "name": "pico",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "includePath":[
+                "/home/robert/pico/pico/pico-sdk/**",
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/src/common",
+                "/home/robert/pico/pico/pico-sdk/src/common/pico_stdlib/include",
+                "/home/robert/pico/pico/pico-sdk/src/rp2_common/pico_stdio/include/",
+                "/home/robert/pico/pico/pico-sdk/src/common/pico_time/include/",
+                "/home/robert/pico/pico/pico-sdk/src/rp2040/hardware_structs/include",
+                "/home/robert/pico/pico/pico-sdk/src/rp2040/hardware_regs/include",
+                "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_base/include",
+                "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_pwm/include",
+                "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_gpio/include",
+                "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_timer/include",
+                "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_irq/include",
+                "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_uart/include",
+                "/home/robert/pico/pico/pico-sdk/src/boards/include/boards",
+                "/home/robert/pico/pico/pico-sdk/src/boards/include",
+                "/home/robert/pico/pico/pico-sdk/lib",
+                "/home/robert/pico/pico/pico-sdk/lib/tinyusb/src",
+                "/home/robert/pico/pico/pico-sdk/src/common/pico_base/include",
+                "/home/robert/pico/pico/pico-sdk/src",
+                "/home/robert/pico/pico/pico-sdk/lib/**"
+            ]
+        }
+    ],
+    "version": 4
+}

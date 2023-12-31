@@ -1,0 +1,1 @@
+cmd='/snap/clion/250/bin/cmake/linux/x64/bin/cmake;-DCMAKE_MAKE_PROGRAM:FILEPATH=/snap/clion/250/bin/ninja/linux/x64/ninja;-GNinja;-S;<SOURCE_DIR><SOURCE_SUBDIR>;-B;<BINARY_DIR>'
