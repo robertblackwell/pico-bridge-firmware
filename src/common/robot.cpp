@@ -1,17 +1,16 @@
 #include "robot.h"
 #include <stdio.h>
-#include <pico/stdlib.h>
 #include <hardware/gpio.h>
 #include <hardware/pwm.h>
 
 #include "trace.h"
 #include "dri0002.h"
 #include "config.h"
+#include "encoder_sample.h"
 #include "encoder.h"
 #include "task.h"
 #include "motion.h"
-#include "reporter.h"
-#include "commands.h"
+#include "transport/static_buffers.h"
 
 #define RAII_ENCODER
 #ifdef RAII_ENCODER
@@ -50,11 +49,14 @@ void isr_bpin_right(){ /*encoder_common_isr(&encoder_right)*/;} // only want int
 Encoder* encoder_left_ptr = &encoder_left;
 Encoder* encoder_right_ptr = &encoder_right;
 MotionControl motion_controller{&dri0002, encoder_left_ptr, encoder_right_ptr};
-Reporter reporter{encoder_left_ptr, encoder_right_ptr};
+// Reporter reporter{encoder_left_ptr, encoder_right_ptr};
 
 Task motion_task(2000, &motion_controller);
-Task report_task(20, &reporter);
+// Task report_task(20, &reporter);
 
+EncoderSample encoder_sample_left;
+EncoderSample encoder_sample_right;
+// Task encoder_samples_task(20, &robot_collect_encoder_samples);
 /*
 ************************************************************************
 * RAII initialization
@@ -62,7 +64,7 @@ Task report_task(20, &reporter);
 */
 #else
 #endif
-
+void robot_collect_encoder_samples();
 
 void robot_init()
 {
@@ -77,12 +79,16 @@ void robot_init()
 void robot_tasks_run()
 {
     motion_task();
-    report_task();
+    // report_task();
 }
-void robot_reporter_task_run()
-{
-    report_task();
-}
+// void robot_reporter_task_run()
+// {
+//     report_task();
+// }
+// void robot_collect_encoder_samples_task_run()
+// {
+//     encoder_samples_task.run();
+// }
 void robot_set_raw_pwm_percent(double left_pwm_percent, double right_pwm_percent)
 {
     motion_controller.set_raw_pwm_percent(left_pwm_percent, right_pwm_percent);
@@ -101,9 +107,51 @@ void robot_stop_all()
 }
 void robot_request(int n)
 {
-    reporter.request(n);
+    // reporter.request(n);
 }
 void robot_update_pid(double kp, double ki, double kd)
 {
     motion_controller.update_pid(kp, ki, kd);
+}
+
+void tojson_encoder_samples(StaticBuffers::Handle buffer_h)
+{
+		FTRACE("collect_samples\n");
+        // EncoderSample left_sample;
+        // EncoderSample right_sample;
+		bool got_some = false;
+		encoder_sample_left.reset();
+		encoder_sample_right.reset();
+		encoder_left_ptr->run();
+		encoder_right_ptr->run();
+		if(encoder_left_ptr->available()) {
+			FTRACE("Reporter.run - got a left sample\n"," ")
+			encoder_left_ptr->consume(encoder_sample_left);
+			got_some = true;
+		}
+		if(encoder_right_ptr->available()) {
+			FTRACE("Reporter.run - got a right sample\n", " ")
+			encoder_right_ptr->consume(encoder_sample_right);
+			got_some = true;
+		}
+		tojson_two_encoder_samples(buffer_h, encoder_sample_left, encoder_sample_right);
+}
+
+
+
+void robot_collect_encoder_samples() {
+	FTRACE("collect_samples\n");
+	bool got_some = false;
+	encoder_left_ptr->run();
+	encoder_right_ptr->run();
+	if(encoder_left_ptr->available()) {
+		FTRACE("Reporter.run - got a left sample\n"," ")
+		encoder_left_ptr->consume(encoder_sample_left);
+		got_some = true;
+	}
+	if(encoder_right_ptr->available()) {
+		FTRACE("Reporter.run - got a right sample\n", " ")
+		encoder_right_ptr->consume(encoder_sample_right);
+		got_some = true;
+	}
 }

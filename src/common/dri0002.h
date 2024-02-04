@@ -7,7 +7,8 @@
 #include <enum.h>
 
 /**
- * This class interfaces to the pwm functions on a raspberry pi pico
+ * This class interfaces to one of the pwm functions on a raspberry pi pico as well as 
+ * the the corresponding direction pin on a DRI0002
 */
 struct PwmPiPico 
 {
@@ -17,7 +18,12 @@ struct PwmPiPico
 	uint m_slice_num;
 	uint m_channel;
 	uint m_direction_pin;
+
+	/**
+	 * The direction the motor on 
+	*/
 	MotorDirection m_direction;
+
 	void begin(uint pwm_pin, uint direction_pin, uint wrap);
 	void set_level(uint level);
 	/**

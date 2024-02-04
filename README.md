@@ -27,7 +27,7 @@ https://github.com/majbthrd/pico-debug/blob/master/howto/openocd.md
 Pico Probe USB                      --> dev machine
 Pico Probe connector labelled debug --> 3 debug pins on the Target Pico
 ```
-#### Control/Dar=ta Flow
+#### Control/Data Flow
 
 On the dev machine run the following entities
 

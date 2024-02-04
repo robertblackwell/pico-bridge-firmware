@@ -23,6 +23,8 @@
 #define STATE_A0B1  1
 #define STATE_A0B0  0
 
+
+
 #if 0
 void irq_handler_left_apin();
 void irq_handler_right_apin();
@@ -111,18 +113,21 @@ void Encoder::run()
     // noInterrupts();
     gpio_irq_off(m_encoder_a_pin);
     gpio_irq_off(m_encoder_b_pin);
+
     m_sample.s_timestamp_musecs = m_isr_timestamp_musecs;
     m_sample.s_apin_state = m_apin_state;
     m_sample.s_bpin_state = m_bpin_state;
     m_sample.s_sample_sum =  m_isr_saved_sample_sum;
     m_sample.s_available = m_isr_new_sample_sum_available_flag;
     m_isr_new_sample_sum_available_flag = false;
+    
     gpio_irq_backon(m_encoder_a_pin);
     gpio_irq_backon(m_encoder_b_pin);
     // interrupts();
 
     if(! m_sample.s_available) {
-        // log_print("encoder.run name: ", m_name, " addr:", (long)this, "did not find a new sample - motor speed is probably : 0 mm/sec  \n");
+        m_sample.reset();
+        // print_fmt("encoder.run name: ", m_name, " addr:", (long)this, "did not find a new sample - motor speed is probably : 0 mm/sec  \n");
         return;
     }
     m_sample.s_contains_data = true;

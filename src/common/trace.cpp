@@ -6,54 +6,74 @@
 
 typedef void (trace_puts_t)(const char*);
 
-trace_puts_t* trace_puts_func_ptr;
-uart_inst_t* trace_uart_ptr;
-int trace_baudrate;
-int trace_rx_pin;
-int trace_tx_pin;
-bool trace_add_cr = false;
 
-void trace_uart_puts(const char* s)
-{
-    // printf("trace_uart_puts trace_uart_ptr %p  u0: %p u1: %p\n ", trace_uart_ptr, uart0, uart1);
-    uart_puts(trace_uart_ptr, s);
-    if(trace_add_cr) {
-        uart_puts(trace_uart_ptr, "\r");
+#if defined(TRACE_ON_AMD64LINUX) || defined(PLATFORM_IS_LINUX)
+    //
+    // On Linux stdio trace only is provided
+    //
+    void trace_stdio_puts(const char* s)
+    {
+        puts(s);
     }
-}
-void trace_stdio_puts(const char* s)
-{
-    puts_raw(s);
-}
-void trace_init()
-{
-    #ifdef IRACOON_TRACE_NONSTDIO_UART
-        TPRINTF("trace_uart: %d tx_pin: %d rx_pin %d\n", IRACOON_TRACE_UART_NBR, IRACOON_TRACE_TX_PIN, IRACOON_TRACE_RX_PIN);
-        trace_init_full(IRACOON_TRACE_UART, IRACOON_TRACE_BAUDRATE, IRACOON_TRACE_RX_PIN, IRACOON_TRACE_TX_PIN);
-    #else
-        trace_init_stdio();
-        // using stdio for tracing - rely on caller to do some form of stdio_init_all()
-    #endif
-}
-void trace_init_stdio()
-{
-    trace_puts_func_ptr = &trace_stdio_puts;
-}
-void trace_init_full(uart_inst_t* uart_ptr, int baudrate, int rx_pin, int tx_pin)
-{
-    // printf("trace_init_full usrt_ptr %p baudrate: %d rx_pin: %d tx_pin: %d\n", uart_ptr, baudrate, rx_pin, tx_pin);
-    trace_uart_ptr = uart_ptr;
-    trace_rx_pin = rx_pin;
-    trace_tx_pin = tx_pin;
-    trace_baudrate = baudrate;
+    trace_puts_t* trace_puts_func_ptr = &(trace_stdio_puts);
+    void trace_init_stdio()
+    {
+        trace_puts_func_ptr = &trace_stdio_puts;
+    }
 
-    uart_init(trace_uart_ptr, baudrate);
-    gpio_set_function(rx_pin, GPIO_FUNC_UART);
-    gpio_set_function(tx_pin, GPIO_FUNC_UART);
+#else
+    trace_puts_t* trace_puts_func_ptr;
+    //
+    // on pico can have trace running over a uart
+    //
+    uart_inst_t* trace_uart_ptr;
+    int trace_baudrate;
+    int trace_rx_pin;
+    int trace_tx_pin;
+    bool trace_add_cr = false;
 
-    trace_puts_func_ptr = trace_uart_puts;
-    trace_add_cr = false;
-}
+    void trace_uart_puts(const char* s)
+    {
+        // printf("trace_uart_puts trace_uart_ptr %p  u0: %p u1: %p\n ", trace_uart_ptr, uart0, uart1);
+        uart_puts(trace_uart_ptr, s);
+        if(trace_add_cr) {
+            uart_puts(trace_uart_ptr, "\r");
+        }
+    }
+    void trace_stdio_puts(const char* s)
+    {
+        puts_raw(s);
+    }
+    void trace_init()
+    {
+        #ifdef IRACOON_TRACE_NONSTDIO_UART
+            TPRINTF("trace_uart: %d tx_pin: %d rx_pin %d\n", IRACOON_TRACE_UART_NBR, IRACOON_TRACE_TX_PIN, IRACOON_TRACE_RX_PIN);
+            trace_init_full(IRACOON_TRACE_UART, IRACOON_TRACE_BAUDRATE, IRACOON_TRACE_RX_PIN, IRACOON_TRACE_TX_PIN);
+        #else
+            trace_init_stdio();
+            // using stdio for tracing - rely on caller to do some form of stdio_init_all()
+        #endif
+    }
+    void trace_init_full(uart_inst_t* uart_ptr, int baudrate, int rx_pin, int tx_pin)
+    {
+        // printf("trace_init_full usrt_ptr %p baudrate: %d rx_pin: %d tx_pin: %d\n", uart_ptr, baudrate, rx_pin, tx_pin);
+        trace_uart_ptr = uart_ptr;
+        trace_rx_pin = rx_pin;
+        trace_tx_pin = tx_pin;
+        trace_baudrate = baudrate;
+
+        uart_init(trace_uart_ptr, baudrate);
+        gpio_set_function(rx_pin, GPIO_FUNC_UART);
+        gpio_set_function(tx_pin, GPIO_FUNC_UART);
+
+        trace_puts_func_ptr = trace_uart_puts;
+        trace_add_cr = false;
+    }
+    void trace_init_stdio()
+    {
+        trace_puts_func_ptr = &trace_stdio_puts;
+    }
+#endif
 
 #define PRINT_FMT_BUFLEN 512
 static char str_buf[PRINT_FMT_BUFLEN];
@@ -63,7 +83,7 @@ void print_trace(const char* filename, int line_number, const char* func, const 
     va_list(args);
     va_start(args, fmt);
     int len = 0;
-    len += snprintf(str_buf, PRINT_FMT_BUFLEN, "TRACE %s:[%d]:[%s] ", filename, line_number, func); \
+    len += snprintf(str_buf, PRINT_FMT_BUFLEN, "TRACE %s:[%d]:[%s] ", filename, line_number, func); 
     len += vsnprintf(&str_buf[len], PRINT_FMT_BUFLEN - len, fmt, args);
     trace_puts_func_ptr(str_buf);
     va_end(args);
@@ -75,6 +95,8 @@ void print_fmt(const char* fmt, ...) {
     va_start(args, fmt);
     int len = vsnprintf(str_buf, PRINT_FMT_BUFLEN, fmt, args);
     ASSERT_MSG((len < PRINT_FMT_BUFLEN), "print_fmt buffer overflow\n");
+    void* x = (void*)trace_puts_func_ptr;
+    ASSERT_MSG((trace_puts_func_ptr != nullptr), "trace_puts_func_ptr is null")
     trace_puts_func_ptr(str_buf);
     
     // printf("%.*s", len, str_buf);

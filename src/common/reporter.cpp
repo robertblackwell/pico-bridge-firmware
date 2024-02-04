@@ -65,14 +65,14 @@ void report_both_samples(EncoderSample* left_sample_ptr, EncoderSample* right_sa
 	len += sprintf(buffer+len, "]\n/*BB*/");
 	#endif 
 	printf("buffer length : %d\n", strlen(buffer));
-	transport_send(buffer, len);
+	// transport_send(buffer, len);
 }
 int sprintf_sample(char* buffer, EncoderSample* sample_ptr)
 {
 	int len;
 	const char* fmt = "{'name': '%s', 'timestamp':%lu,'musecs_per_interrupt':%9.3f,'motor_rpm': %6.3f,'wheel_rpm': %.3f, 'speed_mm_sec': %f}" ;
-	const char* fmt2 = "{'n': '%s','ts':%lu,'miq':%.3f,'mr':%9.3f,'wr':%6.3f,'sd':%.3f}" ;
-	const char* fmt3 = "{'n': '%s','ts':%lu,'miq':%.3f,'mr':%9.3f,'wr':%6.3f,'sd':%.3f}" ;
+	const char* fmt2 = "{'n': '%s','ts':%lu,'miq':%.3f,'mr':%9.3f,'wr':%6.3f,'sd':%.3f, 'ps':'%s'}" ;
+	const char* fmt3 = "{'n': '%s','ts':%lu,'miq':%.3f,'mr':%9.3f,'wr':%6.3f,'sd':%.3f, 'ps':'F'}" ;
 
 	if(sample_ptr->s_contains_data) {
 		len = sprintf(buffer, fmt2
@@ -83,15 +83,17 @@ int sprintf_sample(char* buffer, EncoderSample* sample_ptr)
 			,(double)sample_ptr->s_motor_rpm
 			,(double)sample_ptr->s_wheel_rpm 
 			,(double)sample_ptr->s_speed_mm_per_second
+			,sample_ptr->s_pin_state
 		);
 	} else {
-		len = sprintf(buffer, fmt2
-			,"" 
+		len = sprintf(buffer, fmt3
+			,"xx" 
 			,micros()
 			,(double)0.00
 			,(double)0.0
 			,(double)0.0 
 			,(double)0.0
+			,"F"
 		);
 	}
 	return len;

@@ -3,24 +3,12 @@
 #define H_enum_h
 #include <config.h>
 
-enum MotorDirection {
+enum class MotorDirection {
     forward = 1,
     backwards = -1,
 };
 
-// MotorDirection reverse_direction(MotorDirection d) 
-// {
-//     switch(d) {
-//         case MotorDirection::forward:
-//             return MotorDirection::backwards;
-//             break;
-//         default:
-//             return MotorDirection::forward;
-//             break;
-//     }
-// }
-
-enum MotorSide 
+enum class MotorSide 
 {
 	left = MOTOR_LEFT_DRI0002_SIDE,
 	right= MOTOR_RIGHT_DRI0002_SIDE

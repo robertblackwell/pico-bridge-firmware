@@ -5,7 +5,6 @@
 #include <pico/types.h>
 #include <hardware/gpio.h>
 #include <pico_gpio_irq_dispatcher.h>
-#include <utils.h>
 #define OUTPIN_01 13
 #define OUTPIN_02 12
 #define INPIN_01 15

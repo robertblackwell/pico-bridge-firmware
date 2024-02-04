@@ -10,6 +10,11 @@ message("COMMON_SRC_DIR    ${COMMON_SRC_DIR}")
 
 add_executable(bridge 
     bridge.cpp
+    ${COMMON_SRC_DIR}/cli/argv.cpp
+    ${COMMON_SRC_DIR}/cli/argv.h
+    ${COMMON_SRC_DIR}/cli/commands.h
+    ${COMMON_SRC_DIR}/cli/commands.cpp
+
     ${COMMON_SRC_DIR}/enum.cpp
     ${COMMON_SRC_DIR}/enum.h
     ${COMMON_SRC_DIR}/trace.cpp
@@ -18,25 +23,29 @@ add_executable(bridge
     ${COMMON_SRC_DIR}/dri0002.cpp
     ${COMMON_SRC_DIR}/encoder.h
     ${COMMON_SRC_DIR}/encoder.cpp
+    ${COMMON_SRC_DIR}/encoder_sample.h
+    ${COMMON_SRC_DIR}/encoder_sample.cpp
     ${COMMON_SRC_DIR}/pico_gpio_irq_dispatcher.h
     ${COMMON_SRC_DIR}/pico_gpio_irq_dispatcher.cpp
-    ${COMMON_SRC_DIR}/cli.h
-    ${COMMON_SRC_DIR}/cli.cpp
-    ${COMMON_SRC_DIR}/commands.h
-    ${COMMON_SRC_DIR}/commands.cpp
     ${COMMON_SRC_DIR}/motion.h
     ${COMMON_SRC_DIR}/motion.cpp
-    ${COMMON_SRC_DIR}/reporter.h
-    ${COMMON_SRC_DIR}/reporter.cpp
     ${COMMON_SRC_DIR}/robot.h
     ${COMMON_SRC_DIR}/robot.cpp
     ${COMMON_SRC_DIR}/task.h
-    ${COMMON_SRC_DIR}/transport.h
-    ${COMMON_SRC_DIR}/transport.cpp
+
+    ${COMMON_SRC_DIR}/transport/static_buffers.h
+    ${COMMON_SRC_DIR}/transport/static_buffers.cpp
+    ${COMMON_SRC_DIR}/transport/transmit_buffer_pool.h
+    ${COMMON_SRC_DIR}/transport/transmit_buffer_pool.cpp
+    ${COMMON_SRC_DIR}/transport/transport.h
+    ${COMMON_SRC_DIR}/transport/transport.cpp
+    ${COMMON_SRC_DIR}/transport/transport_reader.cpp
+
     ${COMMON_SRC_DIR}/pid.h
     ${COMMON_SRC_DIR}/pid.cpp
 )
 target_include_directories(bridge PRIVATE ${COMMON_SRC_DIR})
+target_compile_definitions(bridge PUBLIC TRANSPORT_MODE_LINE=1)
 pico_enable_stdio_usb(bridge 1)
 pico_enable_stdio_uart(bridge 0)
 pico_add_extra_outputs(bridge)

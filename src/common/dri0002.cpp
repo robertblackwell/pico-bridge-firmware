@@ -29,7 +29,15 @@ void PwmPiPico::begin(uint pwm_pin, uint direction_pin, uint wrap) {
 	gpio_init(m_direction_pin);
 	gpio_set_dir(m_direction_pin, GPIO_OUT);
 	m_direction = MotorDirection::forward;
-	gpio_put(m_direction_pin, (m_direction)?1:0);
+	/**
+	 * Not this. For a diff drive robot to go forward one motor must turn forward(clockwise) and the other
+	 * must turn backwards(counter clockwise). In the robot controlled by this code this "opposite" direction
+	 * requirement is handled in the polarity of the wiring between the motor and the DRI0002.
+	 * 
+	 * The software should set both direction pins to '1' to go forward and both direction pins to '0'
+	 * to go backwards
+	*/
+	gpio_put(m_direction_pin, (m_direction == MotorDirection::forward)?1:0);
 
 	m_slice_num = pwm_gpio_to_slice_num(m_pwm_pin);
 	m_channel = pwm_gpio_to_channel(m_pwm_pin);
@@ -75,12 +83,12 @@ void PwmPiPico::set_pwm_percent(double percent)
 // }
 void PwmPiPico::set_direction(MotorDirection dir)
 {
-	printf("PwmPiPico::set_direction old dir: %d new dir %d \n", m_direction, dir);
+	FTRACE("PwmPiPico::set_direction old dir: %d new dir %d ", m_direction, dir);
 	// if(m_direction != dir) {
-		printf("PwmPiPico::set_diredction settig old dir: %d new dir %d \n", m_direction, dir);
+		FTRACE("PwmPiPico::set_diredction settig old dir: %d new dir %d ", m_direction, dir);
 		m_direction = dir;
 		int bit = (m_direction == MotorDirection::forward)? 1: 0;
-		printf("PwmPiPico::set_direction bit %d\n", bit);
+		FTRACE("PwmPiPico::set_direction bit %d", bit);
 		gpio_put(m_direction_pin, bit);
 	// }
 }

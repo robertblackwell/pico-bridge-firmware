@@ -1,4 +1,8 @@
 .pio/*
 build/
+**/build/
+cmake-build-debug/
+**/cmake-build-debug/
+**/junk/
 python/dashboard 
 src-saved

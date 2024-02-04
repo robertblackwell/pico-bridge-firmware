@@ -1,7 +1,32 @@
 #ifndef H_trace_h
 #define H_trace_h
+// 
+// This module requires different implementation depending on the underlying operating system. Options are:
+// -    running tests on my Linux system which is an amd64. Signified bycompler option PLATFORM_IS_LINUX
+// -    a raspberry pi pico micro controller
+//
+// The next #if #else chain needs to be ammended if there are other options
+//
+#if defined(PLATFORM_IS_LINUX)
+    // #pragma message("platform is linux detected")
+    #define TRACE_ON_AMD64LINUX
+#elif defined(__amd64__)
+    // #pragma message("amd64 detected")
+    #define TRACE_ON_AMD64LINUX
+#elif __arm__
+    // #pragma message("arm detected")
+#else
+    #pragma message("neither arm or amd64")
+#endif
+
 #include <stdio.h>
-#include <pico/stdlib.h>
+#ifdef TRACE_ON_AMD64LINUX
+    #include <stdlib.h>
+#else
+    #include <pico/stdlib.h>
+#endif
+
+
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
@@ -56,7 +81,10 @@ extern "C"
 
 void trace_init();
 void trace_init_stdio();
-void trace_init_full(uart_inst_t* uart, int baudrate, int rx_pin, int tx_pin);
+#ifndef TRACE_ON_AMD64LINUX
+    // trace on uart only works on pico
+    void trace_init_full(uart_inst_t* uart, int baudrate, int rx_pin, int tx_pin);
+#endif
 
 void print_fmt(const char* fmt, ...);
 void print_trace(const char* filename, int line_number, const char* func, const char* fmt, ...);
@@ -74,7 +102,7 @@ void print_trace(const char* filename, int line_number, const char* func, const 
  * data or program memory
  */
 #if 1
-inline const char* str_end(const char *str) {
+const char* str_end(const char *str) {
     return *str ? str_end(str + 1) : str;
 }
 
@@ -136,7 +164,9 @@ inline const char* file_name(const char* str) {
 #define FDUMP_TOKENS(token, msg)
 #endif
 
-#ifndef ARDUINO
+#if defined(TRACE_ON_AMD64LINUX)
+inline void delay(long x) {throw "From inside trace.h::delay()";}
+#elif !defined(ARDUINO)
 inline void delay(long x) {sleep_ms(x);}
 #endif
 
@@ -176,7 +206,7 @@ inline void delay(long x) {sleep_ms(x);}
  * Utility functions for Arduino
  */
 
-void print_fmt(const char* fmt, ...);
+
 void trace_hexdump_uint16(const char* msg, uint16_t v);
 void trace_hexdump_uint32(const char* msg, uint32_t v);
 void trace_hexdump(const char* m, uint8_t* buf, uint16_t len );
