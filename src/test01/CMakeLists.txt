@@ -7,8 +7,8 @@ set(TargetName test01)
 
 add_executable(${TargetName} test.cpp)
 
-pico_enable_stdio_usb(${TargetName} 0)
-pico_enable_stdio_uart(${TargetName} 1)
+pico_enable_stdio_usb(${TargetName} 1)
+pico_enable_stdio_uart(${TargetName} 0)
 pico_add_extra_outputs(${TargetName})
 
 target_compile_definitions(${TargetName} PRIVATE

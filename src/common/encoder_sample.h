@@ -2,7 +2,7 @@
 #define H_encoder_sample_h
 #include "config.h"
 #include <cstdint>
-#include "transport/static_buffers.h"
+#include "transport/buffers.h"
 
 struct EncoderSample {
     bool        s_contains_data;
@@ -40,9 +40,18 @@ struct EncoderSample {
         s_musecs_per_interrupt = 0.0;
         s_musecs_per_motor_revolution = 0.0;
     }
+    void dump()
+    {
+        print_fmt("EncoderSampel addr: %p\n", (void*)this);
+
+        print_fmt("   s_contains_data: %d\n", (int)s_contains_data);
+        print_fmt("   s_sample_sum   : %ld\n", s_sample_sum);
+        print_fmt("   s_motor_rpm: %f\n", s_motor_rpm);
+        print_fmt("   s_wheel_rpm: %f\n", s_wheel_rpm);
+    }
 };
-void tojson_one_encoder_sample(StaticBuffers::Handle buffer_h, EncoderSample& sample);
-void tojson_two_encoder_samples(StaticBuffers::Handle buffer_h, EncoderSample& left_sample, EncoderSample& right_sample);
+void tojson_one_encoder_sample(transport::buffer::Handle buffer_h, EncoderSample* sample);
+void tojson_two_encoder_samples(transport::buffer::Handle buffer_h, EncoderSample* left_sample, EncoderSample* right_sample);
 
 
 #endif

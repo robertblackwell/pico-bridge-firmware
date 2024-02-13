@@ -1,3 +1,5 @@
+
+#undef FTRACE_ON
 #include "robot.h"
 #include <stdio.h>
 #include <hardware/gpio.h>
@@ -10,7 +12,7 @@
 #include "encoder.h"
 #include "task.h"
 #include "motion.h"
-#include "transport/static_buffers.h"
+#include "transport/buffers.h"
 
 #define RAII_ENCODER
 #ifdef RAII_ENCODER
@@ -54,8 +56,8 @@ MotionControl motion_controller{&dri0002, encoder_left_ptr, encoder_right_ptr};
 Task motion_task(2000, &motion_controller);
 // Task report_task(20, &reporter);
 
-EncoderSample encoder_sample_left;
-EncoderSample encoder_sample_right;
+// EncoderSample encoder_sample_left;
+// EncoderSample encoder_sample_right;
 // Task encoder_samples_task(20, &robot_collect_encoder_samples);
 /*
 ************************************************************************
@@ -114,31 +116,37 @@ void robot_update_pid(double kp, double ki, double kd)
     motion_controller.update_pid(kp, ki, kd);
 }
 
-void tojson_encoder_samples(StaticBuffers::Handle buffer_h)
+void tojson_encoder_samples(transport::buffer::Handle buffer_h)
 {
 		FTRACE("collect_samples\n");
-        // EncoderSample left_sample;
-        // EncoderSample right_sample;
+        EncoderSample encoder_sample_left;
+        EncoderSample encoder_sample_right;
 		bool got_some = false;
 		encoder_sample_left.reset();
 		encoder_sample_right.reset();
 		encoder_left_ptr->run();
 		encoder_right_ptr->run();
-		if(encoder_left_ptr->available()) {
-			FTRACE("Reporter.run - got a left sample\n"," ")
+		FTRACE("both encoder->run() executed\n");
+ 		if(encoder_left_ptr->available()) {
+			FTRACE("got a left sample\n"," ")
 			encoder_left_ptr->consume(encoder_sample_left);
+			FTRACE("consume left sample\n"," ")
+			// encoder_sample_left.dump();
 			got_some = true;
 		}
 		if(encoder_right_ptr->available()) {
-			FTRACE("Reporter.run - got a right sample\n", " ")
+			FTRACE("got a right sample\n", " ")
 			encoder_right_ptr->consume(encoder_sample_right);
+			FTRACE("consume right sample\n"," ")
+			// encoder_sample_right.dump();
 			got_some = true;
 		}
-		tojson_two_encoder_samples(buffer_h, encoder_sample_left, encoder_sample_right);
+		FTRACE("consume both sample %s\n","\n")
+		tojson_two_encoder_samples(buffer_h, &encoder_sample_left, &encoder_sample_right);
 }
 
 
-
+#if 0
 void robot_collect_encoder_samples() {
 	FTRACE("collect_samples\n");
 	bool got_some = false;
@@ -155,3 +163,4 @@ void robot_collect_encoder_samples() {
 		got_some = true;
 	}
 }
+#endif

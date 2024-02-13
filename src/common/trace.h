@@ -102,7 +102,7 @@ void print_trace(const char* filename, int line_number, const char* func, const 
  * data or program memory
  */
 #if 1
-const char* str_end(const char *str) {
+inline const char* str_end(const char *str) {
     return *str ? str_end(str + 1) : str;
 }
 
@@ -156,7 +156,7 @@ inline const char* file_name(const char* str) {
 #define FDEBUG_PRINT(fmt, ...)
 #endif
 
-#ifdef FDEBUG_ON
+#if defined(FDEBUG_ON) or defined(FTRACE_ON)
 #define FDUMP_TOKENS(token, msg) do { \
     (token).dump(msg);  \
 } while(0);

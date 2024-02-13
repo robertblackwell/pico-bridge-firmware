@@ -21,7 +21,6 @@ void printf_unique_id(char* buffer, uint8_t* uid, int len)
 }
 int main()
 {
-    
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
     stdio_init_all();

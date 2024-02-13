@@ -1,7 +1,7 @@
 #ifndef H_transport_h
 #define H_transport_h
 #include <stdio.h>
-#include "static_buffers.h"
+#include "buffers.h"
 #include "cli/argv.h"
 /**
  * When transmitting to a host the transport module has a choice of modes of operation.
@@ -18,20 +18,24 @@
  * One of these and one only must be defined.
  * 
 */
-enum TransportContentType {
+namespace transport {
+    
+enum ContentType {
     OK_RESPONSE = 'P',
     ERROR_RESPONSE = 'P',
     JSON_RESONSE = 'J'
 };
 
-enum TransportChannel {
+enum Channel {
     RPC_CHANNEL = '1',
     UNSOLICITED_CHANNEL = '2'
 };
 
-struct TransportReader {
-    TransportReader();
-    ~TransportReader();
+void transport_init();
+
+struct Reader {
+    void begin();
+    ~Reader();
     void run();
     bool available();
     
@@ -39,18 +43,18 @@ struct TransportReader {
 
     // Gives you a buffer of input data - caller must deallocate
     // the buffer after use.
-    StaticBuffers::Handle consume();
-    StaticBuffers::Handle borrow_buffer();
-    void  return_buffer(StaticBuffers::Handle bh);
+    transport::buffer::Handle consume();
+    transport::buffer::Handle borrow_buffer();
+    void  return_buffer(transport::buffer::Handle bh);
 
     int                     m_state;
-    StaticBuffers::Handle   m_buffer_handle;
+    transport::buffer::Handle   m_buffer_handle{};
     bool                    m_chars_available;
 };
 
-void transport_send_command_ok(const char* fmt, ...);
-void transport_send_command_error(const char* fmt, ...);
-void transport_send_json_response(StaticBuffers::Handle* buffer_handle);
+void send_command_ok(const char* fmt, ...);
+void send_command_error(const char* fmt, ...);
+void send_json_response(transport::buffer::Handle* buffer_handle);
 
-
+} // end namespace transport
 #endif

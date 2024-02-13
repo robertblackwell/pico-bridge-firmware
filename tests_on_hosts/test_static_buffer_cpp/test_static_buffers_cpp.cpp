@@ -7,13 +7,14 @@
 //
 #include <cstdio>
 #include <cstdlib>
-#include <unittest.h>
-#define LOCAL_TEST
-#include "static_buffers.h"
+#include "unittest.h"
+//#define LOCAL_TEST
+#include "cli/argv.h"
+#include "cli/commands.h"
 #include <encoder_sample.h>
 #include <encoder.h>
-//#include <transport.h>
-//#include <robot.h>
+#include "transport/buffers.h"
+#include "transport/transport.h"
 
 transport::buffer::Buffer<512> abuf;
 transport::buffer::Pool<3, 512> apool;
@@ -37,6 +38,8 @@ int test_02() {
     sleft.s_pin_state = "F";
     sleft.s_name = "left";
     sleft.s_encoder_addr = nullptr;
+    sleft.s_sample_sum = 1212121;
+    sleft.s_timestamp_musecs = 98765431;
     sleft.s_motor_rpm = 5600.22;
     sleft.s_wheel_rpm = (sleft.s_motor_rpm / 229.0);
     sleft.s_speed_mm_per_second = (sleft.s_wheel_rpm / 60.0) * (22.0/7.0) * 70.0;
@@ -46,6 +49,8 @@ int test_02() {
     sright.s_pin_state = "B";
     sright.s_name = "right";
     sright.s_encoder_addr = nullptr;
+    sleft.s_sample_sum = 34343434;
+    sleft.s_timestamp_musecs = 123456789;
     sright.s_motor_rpm = 5638.88;
     sright.s_wheel_rpm = (sleft.s_motor_rpm / 229.0);
     sright.s_speed_mm_per_second = (sleft.s_wheel_rpm / 60.0) * (22.0/7.0) * 70.0;
@@ -53,7 +58,7 @@ int test_02() {
     
     Handle tbh = apool.allocate();
 
-    tojson_two_encoder_samples(tbh, sleft, sright);
+    tojson_two_encoder_samples(tbh, &sleft, &sright);
     // transport_send_command_error("");
     // transport_send_command_ok("");
     // transport_send_json_response(&tbp);
@@ -74,7 +79,22 @@ bool get_char_if_available(int* char_received) {
         return false;
     }
 }
-
+int test_transport_send()
+{
+    transport::send_command_ok("This is from echo %s", "thisisthevalue");
+    return 0;
+}
+int test_command_fill_echo()
+{
+    char buffer[100];
+    strcpy(buffer, " echo 111 222 3 4 5 666");
+    Argv args;
+    args.tokenize(buffer);
+    CommandName enumvalue = command_lookup(args.token_at(0));
+    printf("   ");
+    UT_EQUAL_CSTR(to_string(enumvalue), "echo");
+    return 0;
+}
 // int test_03() {
 //     TransportReader tpreader{};
 //     while(1) {
@@ -92,7 +112,8 @@ int main()
 //    trace_init_stdio();
     printf("Hello world\n");
     // UT_ADD(test_01);
-    UT_ADD(test_01);
-    UT_ADD(test_02);
+     UT_ADD(test_02);
+   UT_ADD(test_command_fill_echo);
+//    UT_ADD(test_transport_send);
     int rc = UT_RUN();
 }

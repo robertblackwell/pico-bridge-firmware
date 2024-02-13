@@ -1,7 +1,6 @@
-#ifndef H_argv_h
-#define H_argv_h
-#include <optional>
-#include "transport/static_buffers.h"
+#ifndef H_cli_argv_h
+#define H_cli_argv_h
+#include "transport/buffers.h"
 #define ARGV_BUFFER_MAX 100
 #define ARGV_TOKENS_MAX 10  // the max number of tokens - max value of argc
 
@@ -13,12 +12,11 @@ struct Argv
 {
     Argv();
     Argv(const char* line);
-    Argv(StaticBuffers::Handle bh);
+    Argv(transport::buffer::Handle bh);
     void  copyTo(Argv& other);
     void tokenize(const char* line);
 
     const char* token_at(int i);
-    std::optional<const char*> token_at_optional(int i);
 
     void  dump(const char* msg);
 

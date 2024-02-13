@@ -10,6 +10,8 @@
                 "/home/robert/pico/pico/pico-sdk/**",
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/src/common",
+                "${workspaceFolder}/tests_on_hosts/common",
+
                 "/home/robert/pico/pico/pico-sdk/src/common/pico_stdlib/include",
                 "/home/robert/pico/pico/pico-sdk/src/rp2_common/pico_stdio/include/",
                 "/home/robert/pico/pico/pico-sdk/src/common/pico_time/include/",

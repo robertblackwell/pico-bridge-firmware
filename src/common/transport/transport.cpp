@@ -24,7 +24,16 @@
 #define TRANSPORT_START_SENTINEL "/**AA**/"
 #define TRANSPORT_END_SENTINEL "/**BB**/"
 
-void transport_putchar(char ch) {
+using namespace transport::buffer;
+
+
+void transport::transport_init() 
+{
+    transport::buffer::rx_pool::init();
+    transport::buffer::tx_pool::init();
+}
+static void transport_putchar(char ch) 
+{
     #ifdef PLATFORM_IS_LINUX
         putchar(ch);
     #else
@@ -32,7 +41,8 @@ void transport_putchar(char ch) {
     #endif
 
 }
-void transport_puts(const char* astring) {
+static void transport_puts(const char* astring) 
+{
     for(int i = 0; astring[i] != (char)0; i++) {
         #ifdef PLATFORM_IS_LINUX
             putchar(astring[i]);
@@ -46,7 +56,8 @@ void transport_puts(const char* astring) {
     //     stdio_put_string(astring);
     // #endif
 }
-void transport_send(StaticBuffers::Handle tbp, char channel,  char type) {
+static void transport_send(transport::buffer::Handle tbp, char channel,  char type) 
+{
     #if defined(TRANSPORT_MODE_PACKET)
     transport_puts(STX);
     #elif defined(TRANSPORT_MODE_LINE)
@@ -56,46 +67,46 @@ void transport_send(StaticBuffers::Handle tbp, char channel,  char type) {
     char bb[3] = {channel, type, (char)0};
     transport_putchar(channel);
     transport_putchar(type);
-    transport_puts(StaticBuffers::sb_buffer_as_cstr(tbp));
+    transport_puts(transport::buffer::sb_buffer_as_cstr(tbp));
     #ifdef TRANSPORT_MODE_PACKET
     transport_puts(ETX);
     #else
-    transport_puts("xxxx");
+    transport_puts("\n");
     #endif
 }
 
-void transport_send_command_ok(const char* fmt, ...)
+void transport::send_command_ok(const char* fmt, ...)
 {
-    StaticBuffers::Handle h = TransmitBufferPool::allocate();
-    StaticBuffers::sb_sprintf(h, "OK ");
+    transport::buffer::Handle h = tx_pool::allocate();
+    transport::buffer::sb_sprintf(h, "OK ");
     va_list(args);
     va_start(args, fmt);
-    StaticBuffers::sb_vsprintf(h, fmt, args);
+    transport::buffer::sb_vsprintf(h, fmt, args);
     va_end(args);
     transport_send(h, '1', 'P');
-    StaticBuffers::Header* hp = (StaticBuffers::Header*)h;
-    TransmitBufferPool::deallocate(h);
+    transport::buffer::Header* hp = (transport::buffer::Header*)h;
+    tx_pool::deallocate(h);
 }
-void transport_send_command_error(const char* fmt, ...)
+void transport::send_command_error(const char* fmt, ...)
 {
-    StaticBuffers::Handle h = TransmitBufferPool::allocate();
-    StaticBuffers::sb_sprintf(h, "ERROR ");
+    transport::buffer::Handle h = tx_pool::allocate();
+    transport::buffer::sb_sprintf(h, "ERROR ");
     va_list(args);
     va_start(args, fmt);
-    StaticBuffers::sb_vsprintf(h, fmt, args);
+    transport::buffer::sb_vsprintf(h, fmt, args);
     va_end(args);
     transport_send(h, '1', 'P');
-    TransmitBufferPool::deallocate(h);
+    tx_pool::deallocate(h);
 }
-void transport_send_json_response(StaticBuffers::Handle* hp)
+void transport::send_json_response(transport::buffer::Handle* hp)
 {
-    StaticBuffers::Handle h = *(hp);
+    transport::buffer::Handle h = *(hp);
     #ifndef LOCAL_TEST
     ASSERT(hp != nullptr)
     ASSERT(h != nullptr)
     #endif
     transport_send(h, '1', 'J');
-    TransmitBufferPool::deallocate(h);
+    tx_pool::deallocate(h);
     *hp = nullptr;
 }
 

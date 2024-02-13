@@ -43,17 +43,18 @@ char static tolower(char c) {
     return ((c >= 'A') && (c <= 'Z')) ? (char)(c - 'A' + 'a'): c;
 }
 
-// TransportReader::TransportReader(): m_argv(Argv())
-TransportReader::TransportReader()
+namespace transport {
+
+void Reader::begin()
 {
     m_state = TRANSPORT_STATE_START;
     // m_next_pos = 0;
     m_chars_available = false;
-    m_buffer_handle = RxBufferPool::allocate();
+    m_buffer_handle = transport::buffer::rx_pool::allocate();
 }
-TransportReader::~TransportReader()
+Reader::~Reader()
 {
-    RxBufferPool::deallocate(m_buffer_handle);
+    transport::buffer::rx_pool::deallocate(m_buffer_handle);
 }
 #if TRANSPORT_MODE_PACKET
 /**
@@ -68,7 +69,7 @@ TransportReader::~TransportReader()
  * and tokenization takes place.
 */
 
-void TransportReader::run()
+void Reader::run()
 {
     #define STXCHAR ((char)02)
     #define ETXCHAR ((char)03)
@@ -119,45 +120,54 @@ void TransportReader::run()
  * This version of Transport::run() reads and parses data that comes in as a line.
  * That is a string terminated by a '\n' character. The character '\r' is ignored. 
 */
-void TransportReader::run()
+void Reader::run()
 {
     if(m_state == TRANSPORT_STATE_LINE_AVAILABLE)
         return;
     int chin;
     char ch;
+    
     while(get_char_if_available(&chin)) {
+        // printf("reader.run chin: %d\n", chin);
         m_state = TRANSPORT_STATE_READING_LINE;
         ch = tolower(chin);
-        if((ch == '\n')|| (ch == '\r')) {
+        if(ch == '\n') {
             m_state = TRANSPORT_STATE_LINE_AVAILABLE;
             return;
+        }else if (ch == '\r') {
+            ;
         } else {
             FTRACE("cli::run ch: %c\n", ch);
-            StaticBuffers::sb_append(m_buffer_handle, ch);
+            transport::buffer::sb_append(m_buffer_handle, ch);
         }
     }
     return;
 }
 #endif
-bool TransportReader::available()
+bool Reader::available()
 {
+    // printf("reader.available m_state: %d\n", m_state);
     return (m_state == TRANSPORT_STATE_LINE_AVAILABLE);
 }
-StaticBuffers::Handle TransportReader::consume()
+transport::buffer::Handle Reader::consume()
 {
     ASSERT(m_state == TRANSPORT_STATE_LINE_AVAILABLE)
-    StaticBuffers::Handle tmp = m_buffer_handle;
-    m_buffer_handle = RxBufferPool::allocate();
+    transport::buffer::Handle tmp = m_buffer_handle;
+    m_buffer_handle = transport::buffer::rx_pool::allocate();
     m_state = TRANSPORT_STATE_START;
     return tmp;
 }
-StaticBuffers::Handle TransportReader::borrow_buffer()
+transport::buffer::Handle Reader::borrow_buffer()
 {
     ASSERT(m_state == TRANSPORT_STATE_LINE_AVAILABLE)
+    m_state = TRANSPORT_STATE_START;
     return m_buffer_handle;
 }
-void TransportReader::return_buffer(StaticBuffers::Handle bh)
+void Reader::return_buffer(transport::buffer::Handle bh)
 {
     ASSERT(bh == m_buffer_handle);
-    StaticBuffers::sb_reset(m_buffer_handle);
+    transport::buffer::sb_reset(m_buffer_handle);
+    m_state == TRANSPORT_STATE_START;
 }
+
+} // namespace transport

@@ -46,6 +46,7 @@ pico_sdk_init()
 
 add_subdirectory(src/debug-blinky)
 add_subdirectory(src/test01)
+add_subdirectory(src/test_command)
 add_subdirectory(src/test_uart)
 add_subdirectory(src/test_serial_ports)
 add_subdirectory(src/helloworld)

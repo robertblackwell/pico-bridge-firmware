@@ -4,23 +4,29 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
-#include "static_buffers.h"
+#include "buffers.h"
 
-namespace TransmitBufferPool {
+namespace transport {
+namespace buffer {    
+namespace tx_pool {
 
-StaticBuffers::Handle allocate();
-void                  deallocate(StaticBuffers::Handle h);
-
-
-} // namespace
-
-namespace RxBufferPool {
-
-StaticBuffers::Handle allocate();
-void                  deallocate(StaticBuffers::Handle h);
+void init();
+transport::buffer::Handle allocate();
+void deallocate(transport::buffer::Handle h);
 
 
-} // namespace
+} // namespace tx_pool
+
+namespace rx_pool {
+
+void init();
+transport::buffer::Handle allocate();
+void                  deallocate(transport::buffer::Handle h);
+
+
+} // namespace rx_pool
+} //namespace buffer
+} //namespace transport
 
 
 #endif

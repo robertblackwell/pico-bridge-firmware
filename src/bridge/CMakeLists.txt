@@ -33,8 +33,8 @@ add_executable(bridge
     ${COMMON_SRC_DIR}/robot.cpp
     ${COMMON_SRC_DIR}/task.h
 
-    ${COMMON_SRC_DIR}/transport/static_buffers.h
-    ${COMMON_SRC_DIR}/transport/static_buffers.cpp
+    ${COMMON_SRC_DIR}/transport/buffers.h
+    ${COMMON_SRC_DIR}/transport/buffers.cpp
     ${COMMON_SRC_DIR}/transport/transmit_buffer_pool.h
     ${COMMON_SRC_DIR}/transport/transmit_buffer_pool.cpp
     ${COMMON_SRC_DIR}/transport/transport.h

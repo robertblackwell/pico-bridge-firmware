@@ -47,12 +47,12 @@ Argv::Argv(const char* line)
     m_unmodified_line_buffer[0] = '\0';
     tokenize_line(line, *this);
 }
-Argv::Argv(StaticBuffers::Handle bh) 
+Argv::Argv(transport::buffer::Handle bh)
 {
     token_count = 0;
     m_line_buffer[0] = '\0';
     m_unmodified_line_buffer[0] = '\0';
-    tokenize_line(StaticBuffers::sb_buffer_as_cstr(bh), *this);
+    tokenize_line(transport::buffer::sb_buffer_as_cstr(bh), *this);
 }
 void Argv::tokenize(const char* line)
 {
@@ -97,13 +97,6 @@ const char* Argv::token_at(int i)
 {
     ASSERT_PRINTF(((i >= 0) && (i < this->token_count)), "i: %d is out of range token_count: %d\n", i, this->token_count);
     return this->token_positions[i];
-}
-auto Argv::token_at_optional(int i) -> std::optional<const char*> 
-{
-    if (i >= this->token_count) {
-        return std::nullopt;
-    }
-    return std::optional<const char*>(this->token_at(i));
 }
 
 /*

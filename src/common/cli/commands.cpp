@@ -186,7 +186,7 @@ CommandName command_lookup(const char* first_arg) {
     };
     static TableEntry table[] = {
         {"c", "echo",    CLI_COMMAND_TAG_ECHO,          CommandName::Echo},
-        {"s", "speed",   CLI_COMMAND_TAG_SPEED,         CommandName::MotorsPwmPercent},
+        {"s", "stop",    CLI_COMMAND_TAG_STOP,          CommandName::MotorsHalt},
         {"w", "pwm",     CLI_COMMAND_MOTOR_PERCENT_PWM, CommandName::MotorsPwmPercent},
 
         {"m", "motor",   CLI_COMMAND_MOTOR_SPEED,       CommandName::MotorsRpm}, // rpw

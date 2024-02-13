@@ -1,60 +1,45 @@
-
+#include <stdint.h>
+#include <new>
 #include "transmit_buffer_pool.h"
 #if  !defined(LOCAL_TEST)
 #include "trace.h"
 #endif
 
-using namespace StaticBuffers;
+using RxPool = transport::buffer::Pool<1,128>;
+using TxPool = transport::buffer::Pool<3, 512>;
 
-StaticBuffers::Pool<3, 512> tx_pool;
+// allocate static space for the 2 buffer pools 
+alignas(8) uint8_t  tx_pool_mem[sizeof(TxPool)];
+alignas(8) uint8_t  rx_pool_mem[sizeof(RxPool)];
 
-Handle TransmitBufferPool::allocate() {
-    return tx_pool.allocate();
+using namespace transport::buffer;
+
+TxPool* tx_pool_ptr;
+void tx_pool::init() 
+{
+    tx_pool_ptr = new ((void*)tx_pool_mem) Pool<3, 512>();
 }
-void TransmitBufferPool::deallocate(StaticBuffers::Handle h) {
-    tx_pool.deallocate(h);
+Handle tx_pool::allocate() 
+{
+    return tx_pool_ptr->allocate();
+}
+void tx_pool::deallocate(transport::buffer::Handle h) 
+{
+    tx_pool_ptr->deallocate(h);
 }
 
 
-StaticBuffers::Pool<1, 128> rx_pool;
-Handle RxBufferPool::allocate() {
-    return rx_pool.allocate();
+RxPool* rx_pool_ptr;
+void rx_pool::init() 
+{
+    rx_pool_ptr = new ((void*)rx_pool_mem) Pool<1, 128>();
 }
-void RxBufferPool::deallocate(StaticBuffers::Handle h) {
-    rx_pool.deallocate(h);
+Handle rx_pool::allocate() 
+{
+    return rx_pool_ptr->allocate();
+}
+void rx_pool::deallocate(transport::buffer::Handle h) 
+{
+    rx_pool_ptr->deallocate(h);
 }
 
-// size_t tb_sprintf(TBuffer* tbp, const char* fmt, ...) {
-//     #ifndef LOCAL_TEST
-//     ASSERT(tbp != nullptr);
-//     #endif
-//     va_list(args);
-//     va_start(args, fmt);
-//     size_t size = vsnprintf(tbp->m_next_available_p, tbp->m_capacity - tbp->m_used_length, fmt, args);
-//     tbp->m_used_length += size;
-//     tbp->m_next_available_p = &(tbp->m_buffer[tbp->m_used_length]);
-//     *(tbp->m_next_available_p) = (char)0;
-//     va_end(args);
-//     return size;
-// }
-// size_t tb_buffer_length(TBuffer* tbp) {
-//     #ifndef LOCAL_TEST
-//     ASSERT(tbp != nullptr);
-//     #endif
-//     return tbp->m_used_length;
-// }
-// char* tb_buffer_as_cstr(TBuffer* tbp) {
-//     #ifndef LOCAL_TEST
-//     ASSERT(tbp != nullptr);
-//     #endif
-//     return tbp->m_buffer_as_str;
-// }
-// void tb_append(TBuffer* tbp, char ch) {
-//     #ifndef LOCAL_TEST
-//     ASSERT(tbp != nullptr)
-//     ASSERT(tbp->m_used_length + 1 < tbp->m_capacity)
-//     #endif
-//     *(tbp->m_next_available_p) = ch;
-//     tbp->m_next_available_p++;
-//     tbp->m_used_length++;
-// }

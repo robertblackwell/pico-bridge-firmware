@@ -1,6 +1,6 @@
 #ifndef H_robot_h
 #define H_robot_h
-#include "transport/static_buffers.h"
+#include "transport/buffers.h"
 
 void robot_init();
 void robot_tasks_run();
@@ -15,5 +15,5 @@ void robot_request(int n);
 void robot_update_pid(double kp, double ki, double kd);
 void robot_collect_encoder_samples();
 
-void tojson_encoder_samples(StaticBuffers::Handle buffer_h);
+void tojson_encoder_samples(transport::buffer::Handle buffer_h);
 #endif
