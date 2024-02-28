@@ -25,6 +25,7 @@
 #define CLI_COMMAND_READ_ENCODERS       8   // read the latest value of the encoders
 #define CLI_COMMAND_RESET_ENCODERS      9   // reset the encoder recording of ticks 
 #define CLI_COMMAND_TAG_ECHO            10
+#define CLI_COMMAND_TAG_LOADTEST        11
 
 enum class CommandName
 {
@@ -36,6 +37,7 @@ enum class CommandName
     PidArgsUpdate = 'u',
     EncodersRead = 'e',
     Echo = 'c',
+    LoadTest = 'l'
 };
 inline const char* to_string(CommandName en)
 {
@@ -65,6 +67,8 @@ inline const char* to_string(CommandName en)
         case CommandName::EncodersRead:
             s =  "EncodersRead";
             break;
+        case CommandName::LoadTest:
+            s = "Loadtest";
     }
     return s;
 }
@@ -75,5 +79,6 @@ bool validate_rpm(Argv& args, double& left, double& right);
 bool validate_stop(Argv& args);
 bool validate_echo(Argv& args);
 bool validate_encoder_read(Argv& args);
+bool validate_loadtest(Argv& args, int& count, int& length, int& num_per_second);
 
 #endif

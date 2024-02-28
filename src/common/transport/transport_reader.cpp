@@ -1,4 +1,4 @@
-#define TRACE_ON
+#define FTRACE_ON
 #if defined(PLATFORM_IS_LINUX)
     #include <stdio.h>
     bool get_char_if_available(int* char_received);
@@ -137,7 +137,7 @@ void Reader::run()
         }else if (ch == '\r') {
             ;
         } else {
-            FTRACE("cli::run ch: %c\n", ch);
+            // printf("cli::run ch: %c\n", ch);
             transport::buffer::sb_append(m_buffer_handle, ch);
         }
     }

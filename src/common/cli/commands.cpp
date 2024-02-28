@@ -176,7 +176,14 @@ bool validate_encoder_read(Argv& args)
     bool valid = (args.token_count >= 1);
     return valid;  
 }
-
+bool validate_loadtest(Argv& args, int& count, int& length, int& num_per_second)
+{
+    bool valid = (args.token_count == 4)
+                && argparse_posint(args, 1, count)
+                && argparse_posint(args, 2, length)
+                && argparse_posint(args, 3, num_per_second);
+    return valid;
+}
 CommandName command_lookup(const char* first_arg) {
     struct TableEntry {
         const char* short_name;
@@ -196,6 +203,7 @@ CommandName command_lookup(const char* first_arg) {
 
         {"u", "upid",    CLI_COMMAND_UPDATE_PIDARGS,    CommandName::PidArgsUpdate},
         {"e", "encoder", CLI_COMMAND_READ_ENCODERS,     CommandName::EncodersRead},
+        {"l", "load",    CLI_COMMAND_TAG_LOADTEST,      CommandName::LoadTest},
         {"x", "raw",     CLI_COMMAND_TAG_NONE,          CommandName::None},
 
         NULL

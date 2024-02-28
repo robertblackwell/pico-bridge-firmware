@@ -20,11 +20,11 @@ void tojson_one_encoder_sample(transport::buffer::Handle buffer_h, EncoderSample
 	const char* fmt3 = "{'n': '%s','ts':%lu,'miq':%.3f,'mr':%9.3f,'wr':%6.3f,'sd':%.3f, 'ps':'F'}" ;
 	if(sample_ptr->s_contains_data) {
         transport::buffer::sb_json_add(buffer_h, "{");
-            transport::buffer::sb_json_add(buffer_h, "'n:%p'", (void*)sample_ptr);
-            transport::buffer::sb_json_add(buffer_h, ", 'ss':%ld", sample_ptr->s_sample_sum);
-            transport::buffer::sb_json_add(buffer_h, ", 'ts':%ld", sample_ptr->s_timestamp_musecs);
-            transport::buffer::sb_json_add(buffer_h, ", 'mr':%9.3f", sample_ptr->s_motor_rpm);
-            transport::buffer::sb_json_add(buffer_h, ", 'ps':%s", sample_ptr->s_pin_state);
+            // transport::buffer::sb_json_add(buffer_h, "\"n\":%p", (void*)sample_ptr);
+            transport::buffer::sb_json_add(buffer_h, " \"ss\":%ld", sample_ptr->s_sample_sum);
+            transport::buffer::sb_json_add(buffer_h, ", \"ts\":%ld", sample_ptr->s_timestamp_musecs);
+            transport::buffer::sb_json_add(buffer_h, ", \"mr\":%9.3f", sample_ptr->s_motor_rpm);
+            transport::buffer::sb_json_add(buffer_h, ", \"ps\":%d", (uint8_t)sample_ptr->s_pin_state[0]);
         transport::buffer::sb_json_add(buffer_h, "}");
 
 		// tbuf_len += sprintf(&(tbuf[tbuf_len]),       "}");

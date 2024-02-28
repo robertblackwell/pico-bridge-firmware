@@ -55,6 +55,7 @@ add_subdirectory(src/test_irq)
 # add_subdirectory(src/test_motor)
 # add_subdirectory(src/test_motion)
 add_subdirectory(src/bridge)
+add_subdirectory(src/test_transport)
 # add_subdirectory(src/onboard_pid)
 
 # add_compile_options(-Wall

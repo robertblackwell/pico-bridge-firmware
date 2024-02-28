@@ -1,7 +1,7 @@
 #ifndef H_cli_argv_h
 #define H_cli_argv_h
 #include "transport/buffers.h"
-#define ARGV_BUFFER_MAX 100
+#define ARGV_BUFFER_MAX 256
 #define ARGV_TOKENS_MAX 10  // the max number of tokens - max value of argc
 
 /**

@@ -5,7 +5,7 @@
 #include "trace.h"
 #endif
 
-using RxPool = transport::buffer::Pool<1,128>;
+using RxPool = transport::buffer::Pool<1,256>;
 using TxPool = transport::buffer::Pool<3, 512>;
 
 // allocate static space for the 2 buffer pools 
@@ -32,7 +32,7 @@ void tx_pool::deallocate(transport::buffer::Handle h)
 RxPool* rx_pool_ptr;
 void rx_pool::init() 
 {
-    rx_pool_ptr = new ((void*)rx_pool_mem) Pool<1, 128>();
+    rx_pool_ptr = new ((void*)rx_pool_mem) Pool<1, 256>();
 }
 Handle rx_pool::allocate() 
 {

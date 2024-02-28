@@ -62,7 +62,7 @@ static void transport_send(transport::buffer::Handle tbp, char channel,  char ty
     transport_puts(STX);
     #elif defined(TRANSPORT_MODE_LINE)
     #else
-         #error "invalid choice for TRANSPORT_MODE_????"
+         ;//#error "invalid choice for TRANSPORT_MODE_????"
     #endif
     char bb[3] = {channel, type, (char)0};
     transport_putchar(channel);
@@ -77,12 +77,14 @@ static void transport_send(transport::buffer::Handle tbp, char channel,  char ty
 
 void transport::send_command_ok(const char* fmt, ...)
 {
+
     transport::buffer::Handle h = tx_pool::allocate();
     transport::buffer::sb_sprintf(h, "OK ");
     va_list(args);
     va_start(args, fmt);
     transport::buffer::sb_vsprintf(h, fmt, args);
     va_end(args);
+    // printf("1P%sXX\n", transport::buffer::sb_buffer_as_cstr(h));
     transport_send(h, '1', 'P');
     transport::buffer::Header* hp = (transport::buffer::Header*)h;
     tx_pool::deallocate(h);
