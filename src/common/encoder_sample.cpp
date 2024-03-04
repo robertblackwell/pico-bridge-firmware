@@ -21,35 +21,22 @@ void tojson_one_encoder_sample(transport::buffer::Handle buffer_h, EncoderSample
 	if(sample_ptr->s_contains_data) {
         transport::buffer::sb_json_add(buffer_h, "{");
             // transport::buffer::sb_json_add(buffer_h, "\"n\":%p", (void*)sample_ptr);
-            transport::buffer::sb_json_add(buffer_h, " \"ss\":%ld", sample_ptr->s_sample_sum);
-            transport::buffer::sb_json_add(buffer_h, ", \"ts\":%ld", sample_ptr->s_timestamp_musecs);
+            transport::buffer::sb_json_add(buffer_h, " \"ss\":%ld", sample_ptr->s_saved_interrupt_count);
+            transport::buffer::sb_json_add(buffer_h, ", \"ts\":%ld", sample_ptr->s_elapsed_usecs);
+            transport::buffer::sb_json_add(buffer_h, ", \"ws\":%9.3f", sample_ptr->s_speed_mm_per_second);
             transport::buffer::sb_json_add(buffer_h, ", \"mr\":%9.3f", sample_ptr->s_motor_rpm);
             transport::buffer::sb_json_add(buffer_h, ", \"ps\":%d", (uint8_t)sample_ptr->s_pin_state[0]);
         transport::buffer::sb_json_add(buffer_h, "}");
 
-		// tbuf_len += sprintf(&(tbuf[tbuf_len]),       "}");
-		// print_fmt("5. %s\n", transport::buffer::sb_buffer_as_cstr(buffer_h));
-
-		// transport::buffer::sb_sprintf(buffer_h, fmt2
-		// 	,sample.s_name 
-		// 	,sample.s_timestamp_musecs 
-		// 	,(double)sample.s_musecs_per_interrupt
-		// 	,(double)sample.s_motor_rpm
-		// 	,(double)sample.s_wheel_rpm 
-		// 	,(double)sample.s_speed_mm_per_second
-		// 	,sample.s_pin_state
-		// );
 	} else {
-		print_fmt("tojson_one_encoder_sample NOT contains_data\n");
-		transport::buffer::sb_sprintf(buffer_h, fmt3
-			,"xx" 
-			,1234567.9876//micros()
-			,(double)0.00
-			,(double)0.0
-			,(double)0.0 
-			,(double)0.0
-			,"F"
-		);
+        transport::buffer::sb_json_add(buffer_h, "{");
+            // transport::buffer::sb_json_add(buffer_h, "\"n\":%p", (void*)sample_ptr);
+            transport::buffer::sb_json_add(buffer_h, " \"ss\":%ld", 0);
+            transport::buffer::sb_json_add(buffer_h, ", \"ts\":%ld", 123456789);
+            transport::buffer::sb_json_add(buffer_h, ", \"ws\":%9.3f", 0.0);
+            transport::buffer::sb_json_add(buffer_h, ", \"mr\":%9.3f", 0.0);
+            transport::buffer::sb_json_add(buffer_h, ", \"ps\":%d", (uint8_t)'F');
+        transport::buffer::sb_json_add(buffer_h, "}");
 	}
 	// print_fmt("tojson_one_encoder_sample after and returning if\n");
 }

@@ -7,10 +7,14 @@
 #include "argv.h"
 
 
-void tokenize_line(const char* line, Argv& argv)
+bool tokenize_line(const char* line, Argv& argv)
 {
     FDEBUG("tokenize_line entered [%s]\n", line);
-    ASSERT_MSG((strlen(line) < ARGV_BUFFER_MAX), "tokenize input line is too big")
+    if(strlen(line) > ARGV_BUFFER_MAX) {
+        printf("tokenize error line is too long");
+        return false;
+    }
+    // ASSERT_MSG((strlen(line) < ARGV_BUFFER_MAX), "tokenize input line is too big")
     strcpy(&(argv.m_line_buffer[0]), line);
     strcpy(&(argv.m_unmodified_line_buffer[0]), line);
 
@@ -25,6 +29,10 @@ void tokenize_line(const char* line, Argv& argv)
             argv.token_positions[argv.token_count] = tk;
             argv.token_lengths[argv.token_count] = strlen(tk);
             argv.token_count++;
+            if(argv.token_count >= ARGV_TOKENS_MAX) {
+                printf("tokenize too many tokens");
+                return false;
+            }
             argv.token_positions[argv.token_count] = nullptr;
             argv.token_lengths[argv.token_count] = 0;
 
@@ -33,6 +41,7 @@ void tokenize_line(const char* line, Argv& argv)
     } 
     FDUMP_TOKENS((argv), "tokenize ");
     FDEBUG("tokenize_line argv.line.buffer %p [%s]  line.buffer %p [%s]\n", argv.m_line_buffer, argv.m_line_buffer, line, line);
+    return true;
 }
 Argv::Argv()
 {
@@ -54,9 +63,9 @@ Argv::Argv(transport::buffer::Handle bh)
     m_unmodified_line_buffer[0] = '\0';
     tokenize_line(transport::buffer::sb_buffer_as_cstr(bh), *this);
 }
-void Argv::tokenize(const char* line)
+bool Argv::tokenize(const char* line)
 {
-    tokenize_line(line, *this);
+    return tokenize_line(line, *this);
 }
 void Argv::dump(const char* msg)
 {

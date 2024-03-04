@@ -118,49 +118,18 @@ void robot_update_pid(double kp, double ki, double kd)
 
 void tojson_encoder_samples(transport::buffer::Handle buffer_h)
 {
-		FTRACE("collect_samples\n");
-        EncoderSample encoder_sample_left;
-        EncoderSample encoder_sample_right;
-		bool got_some = false;
-		encoder_sample_left.reset();
-		encoder_sample_right.reset();
-		encoder_left_ptr->run();
-		encoder_right_ptr->run();
-		FTRACE("both encoder->run() executed\n");
- 		if(encoder_left_ptr->available()) {
-			FTRACE("got a left sample\n"," ")
-			encoder_left_ptr->consume(encoder_sample_left);
-			FTRACE("consume left sample\n"," ")
-			// encoder_sample_left.dump();
-			got_some = true;
-		}
-		if(encoder_right_ptr->available()) {
-			FTRACE("got a right sample\n", " ")
-			encoder_right_ptr->consume(encoder_sample_right);
-			FTRACE("consume right sample\n"," ")
-			// encoder_sample_right.dump();
-			got_some = true;
-		}
-		FTRACE("consume both sample %s\n","\n")
-		tojson_two_encoder_samples(buffer_h, &encoder_sample_left, &encoder_sample_right);
-}
-
-
-#if 0
-void robot_collect_encoder_samples() {
-	FTRACE("collect_samples\n");
-	bool got_some = false;
-	encoder_left_ptr->run();
-	encoder_right_ptr->run();
-	if(encoder_left_ptr->available()) {
-		FTRACE("Reporter.run - got a left sample\n"," ")
-		encoder_left_ptr->consume(encoder_sample_left);
-		got_some = true;
-	}
-	if(encoder_right_ptr->available()) {
-		FTRACE("Reporter.run - got a right sample\n", " ")
-		encoder_right_ptr->consume(encoder_sample_right);
-		got_some = true;
-	}
-}
+#if ! defined(SAMPLE_COLLECTION_TASK)
+//    unsafe_collect_two(*encoder_left_ptr, (encoder_left_ptr->m_sample), *encoder_right_ptr, encoder_right_ptr->m_sample);
 #endif
+    encoder_left_ptr->m_sample.dump();
+    encoder_right_ptr->m_sample.dump();
+
+    tojson_two_encoder_samples(buffer_h, &encoder_left_ptr->m_sample, &encoder_right_ptr->m_sample);
+}
+
+
+void robot_collect_encoder_samples()
+{
+	FTRACE("robot::collect_encoder_samples\n", "");
+    unsafe_collect_two(*encoder_left_ptr, encoder_left_ptr->m_sample, *encoder_right_ptr, encoder_right_ptr->m_sample);
+}

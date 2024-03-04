@@ -9,8 +9,8 @@ pico_sdk_init()
 set(COMMON_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/../common)
 message("COMMON_SRC_DIR    ${COMMON_SRC_DIR}")
 
-add_executable(bridge 
-    bridge.cpp
+add_executable(micros_timing
+    micros_timing.cpp
     ${COMMON_SRC_DIR}/cli/argv.cpp
     ${COMMON_SRC_DIR}/cli/argv.h
     ${COMMON_SRC_DIR}/cli/commands.h
@@ -45,13 +45,13 @@ add_executable(bridge
     ${COMMON_SRC_DIR}/pid.h
     ${COMMON_SRC_DIR}/pid.cpp
 )
-target_include_directories(bridge PRIVATE ${COMMON_SRC_DIR})
-target_compile_definitions(bridge 
+target_include_directories(micros_timing PRIVATE ${COMMON_SRC_DIR})
+target_compile_definitions(micros_timing
     PUBLIC 
     TRANSPORT_MODE_LINE=1
     # ENCODER_ISR_ALGORITHM_V1=2
 )
-pico_enable_stdio_usb(bridge 1)
-pico_enable_stdio_uart(bridge 0)
-pico_add_extra_outputs(bridge)
-target_link_libraries(bridge pico_stdlib hardware_gpio hardware_pwm hardware_sync)
+pico_enable_stdio_usb(micros_timing 1)
+pico_enable_stdio_uart(micros_timing 0)
+pico_add_extra_outputs(micros_timing)
+target_link_libraries(micros_timing pico_stdlib hardware_gpio hardware_pwm hardware_sync)

@@ -25,10 +25,10 @@ class Encoder
     Encoder(int id, const char* name, int encoder_a_pin, int encoder_b_pin, void(*local_isr_a_pin)(), void(*local_isr_b_pin)());
 
     void begin(int id, const char* name, int encoder_a_pin, int encoder_b_pin);
-    void start_interrupts();
+    void start_interrupts() const;
 
     void run();
-    bool available();
+    [[nodiscard]] bool available() const;
     void consume(EncoderSample& sample);
     /**
      * Reset the isr state variables so that the current sample collection is aborted and 
@@ -69,18 +69,32 @@ class Encoder
     */
     void(*m_isr_b)();
 
-    volatile long   m_isr_timestamp_musecs;
-    volatile uint8_t m_apin_state;
-    volatile uint8_t m_bpin_state;
-    volatile bool m_isr_new_sample_sum_available_flag;
-    volatile long m_isr_last_report;
-    volatile long m_isr_report_interval;
-    volatile long m_isr_previous_millis;
-    volatile long m_isr_count;
-    volatile int  m_isr_interval_count;
-    volatile long m_isr_interval_sum;
-    volatile long m_isr_saved_sample_sum;
-    volatile long m_isr_current_sample_sum;
+    /**
+     * properties used by the isr
+    */
+    volatile long    m_isr_timestamp_musecs;
+    volatile bool    m_isr_new_sample_sum_available_flag;
+    volatile long    m_isr_last_report;
+    volatile long    m_isr_report_interval;
+    volatile long    m_isr_count;
+    volatile long    m_isr_interval_sum;
+    volatile long    m_isr_saved_sample_sum;
+    volatile long    m_isr_current_sample_sum;
+
+    volatile int     m_isr_interval_count;
+    volatile long    m_isr_previous_millis;
+
+    volatile uint8_t     m_apin_state;
+    volatile uint8_t     m_bpin_state;
+    volatile uint64_t    m_isr_interrupt_count;
+    volatile uint64_t    m_isr_sample_starttime_usecs;
 };
+/**
+ * WARNING - This function turns off interrupts
+*/
+void unsafe_collect_two(
+    Encoder& left_encoder, EncoderSample& left_sample,
+    Encoder& right_encoder, EncoderSample& right_sample
+    );
 
 #endif

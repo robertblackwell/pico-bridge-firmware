@@ -17,13 +17,11 @@ namespace buffer {
             m_next_available_p = m_buffer_ptr;
             m_buffer_as_str = m_buffer_ptr;
         }
-
-        void reset() {
-            m_used_length = 0;
-            *m_buffer_ptr = '\0';
-            m_next_available_p = m_buffer_ptr;
-            m_buffer_as_str = m_buffer_ptr;
-        }
+        size_t space_remaining();
+        char*  as_cstr();
+        size_t length();
+        void   append(char ch);
+        void reset();
 
         bool m_available;
         size_t m_used_length;
@@ -35,7 +33,7 @@ namespace buffer {
     };
 
 // using Handle = void*;
-    typedef Header *Handle;
+    typedef Header* Handle;
 
     template<int const N>
     struct Buffer {
@@ -131,6 +129,8 @@ namespace buffer {
     void sb_append(Handle buffer_h, char ch);
 
     void sb_reset(Handle bh);
+
+    size_t sb_space_remaining(Handle buffer_h);
 
 } // namespace buffer
 } // namespace transport

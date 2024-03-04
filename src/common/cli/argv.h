@@ -14,7 +14,7 @@ struct Argv
     Argv(const char* line);
     Argv(transport::buffer::Handle bh);
     void  copyTo(Argv& other);
-    void tokenize(const char* line);
+    bool tokenize(const char* line);
 
     const char* token_at(int i);
 

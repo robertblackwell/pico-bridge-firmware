@@ -131,7 +131,7 @@ void Reader::run()
         // printf("reader.run chin: %d\n", chin);
         m_state = TRANSPORT_STATE_READING_LINE;
         ch = tolower(chin);
-        if(ch == '\n') {
+        if((ch == '\n') || (transport::buffer::sb_space_remaining(m_buffer_handle) <= 2)) {
             m_state = TRANSPORT_STATE_LINE_AVAILABLE;
             return;
         }else if (ch == '\r') {

@@ -17,11 +17,11 @@ class MotionControl : public Taskable
     public:
     struct RpmValue
     {
-        double value;
+        double value{};
         MotorDirection direction;
-        bool is_zero;
+        bool is_zero{};
         RpmValue(){}
-        RpmValue(double raw_value){
+        explicit RpmValue(double raw_value){
             
             if(((-1.0*PID_RPM_MIN) < raw_value) && (raw_value < PID_RPM_MIN)) {
                 value = 0.0;
@@ -37,14 +37,14 @@ class MotionControl : public Taskable
                 direction = MotorDirection::forward;
             }
         }
-        double raw_double_value(){
+        [[nodiscard]] double raw_double_value() const{
             return (double)(direction) * value;
         }
     };
     struct Side
     {
         Encoder        *m_encoder_ptr;
-        Pid             m_pid;
+        Pid             m_pid{};
         RpmValue        m_rpm_value;
         MotorSide       m_dri0002_motor_side;
         MotorDirection  m_default_direction;
@@ -62,10 +62,10 @@ public:
     PwmPiPico* dri002_right_side(); 
     void set_pwm_direction(double pwm_motor_left, MotorDirection direction_left, double pwm_motor_right, MotorDirection direction_right);
     void pid_set_rpm(double left_rpm, double right_rpm);
-    void set_raw_pwm_percent(double percent_1, double percent_2);
-    void set_pwm_percent(double percent_1, double percent_2);
+    void set_raw_pwm_percent(double percent_1, double percent_2) const;
+    void set_pwm_percent(double percent_1, double percent_2) const;
     void update_pid(double kp, double ki, double kd);
-    void stop_all();
+    void stop_all() const;
     // void read_encoders(); // not sure we need this
 
     void apply_pid();

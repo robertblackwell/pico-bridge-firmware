@@ -6,11 +6,13 @@
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
+            // "compileCommands": "${workspaceFolder}/build/compile_commands.json",
             "includePath":[
                 "/home/robert/pico/pico/pico-sdk/**",
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/src/common",
                 "${workspaceFolder}/tests_on_hosts/common",
+                "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_sync/**",
 
                 "/home/robert/pico/pico/pico-sdk/src/common/pico_stdlib/include",
                 "/home/robert/pico/pico/pico-sdk/src/rp2_common/pico_stdio/include/",
@@ -23,6 +25,7 @@
                 "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_timer/include",
                 "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_irq/include",
                 "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_uart/include",
+                "/home/robert/pico/pico/pico-sdk/src/rp2_common/hardware_sync/include/**",
                 "/home/robert/pico/pico/pico-sdk/src/boards/include/boards",
                 "/home/robert/pico/pico/pico-sdk/src/boards/include",
                 "/home/robert/pico/pico/pico-sdk/lib",
