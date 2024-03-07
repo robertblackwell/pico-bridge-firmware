@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.13)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_EXPORT_COMPILE_COMMANDS)
 include(pico_sdk_import.cmake)
 project(test_project)
 pico_sdk_init()
@@ -46,12 +45,8 @@ add_executable(bridge
     ${COMMON_SRC_DIR}/pid.cpp
 )
 target_include_directories(bridge PRIVATE ${COMMON_SRC_DIR})
-target_compile_definitions(bridge 
-    PUBLIC 
-    TRANSPORT_MODE_LINE=1
-    # ENCODER_ISR_ALGORITHM_V1=2
-)
+target_compile_definitions(bridge PUBLIC TRANSPORT_MODE_LINE=1)
 pico_enable_stdio_usb(bridge 1)
 pico_enable_stdio_uart(bridge 0)
 pico_add_extra_outputs(bridge)
-target_link_libraries(bridge pico_stdlib hardware_gpio hardware_pwm hardware_sync)
+target_link_libraries(bridge pico_stdlib hardware_gpio hardware_pwm)

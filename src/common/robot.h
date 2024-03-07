@@ -14,7 +14,7 @@ void robot_stop_all();
 void robot_request(int n);
 void robot_update_pid(double kp, double ki, double kd);
 
-
+void robot_start_encoder_sample_collection(uint64_t sample_interval_us);
 void robot_collect_encoder_samples();
 
 void tojson_encoder_samples(transport::buffer::Handle buffer_h);

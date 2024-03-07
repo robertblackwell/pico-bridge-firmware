@@ -26,34 +26,24 @@ class Encoder
 
     void begin(int id, const char* name, int encoder_a_pin, int encoder_b_pin);
     void start_interrupts() const;
-
+#if 0
     void run();
     [[nodiscard]] bool available() const;
     void consume(EncoderSample& sample);
-    /**
-     * Reset the isr state variables so that the current sample collection is aborted and 
-     * collection of a new sample will start on the next interrupt.
-     * This is to prevent a sample spanning over a speed change.
-     * 
-     * When called interrupts must be OFF
-    */
-    void reset_sample();
-    // protected:
-    void initialize(void(*isr_a)(), void(*isr_b)());
-
-    friend Encoder* make_left_encoder();
-    friend Encoder* make_right_encoder();
-    friend void common_interrupt_handler(Encoder* encoder_ptr);
+#endif
+//    // protected:
+//    void initialize(void(*isr_a)(), void(*isr_b)());
+//
+//    friend Encoder* make_left_encoder();
+//    friend Encoder* make_right_encoder();
+//    friend void common_interrupt_handler(Encoder* encoder_ptr);
 
     int m_id;
     const char * m_name;
     EncoderSample m_sample;
-
-    
     /**
      * Following are used to save values collected by the run() function.
     */
-    
     long   m_interrupt_count;
     double m_latest_speed;
 
@@ -84,15 +74,15 @@ class Encoder
     volatile int     m_isr_interval_count;
     volatile long    m_isr_previous_millis;
 
-    volatile uint8_t     m_apin_state;
-    volatile uint8_t     m_bpin_state;
-    volatile uint64_t    m_isr_interrupt_count;
-    volatile uint64_t    m_isr_sample_starttime_usecs;
+    volatile uint8_t            m_apin_state;
+    volatile uint8_t            m_bpin_state;
+    volatile uint32_t           m_isr_interrupt_count;
+    volatile uint64_t           m_isr_sample_starttime_usecs;
 };
 /**
  * WARNING - This function turns off interrupts
 */
-void unsafe_collect_two(
+void unsafe_collect_two_encoder_samples(
     Encoder& left_encoder, EncoderSample& left_sample,
     Encoder& right_encoder, EncoderSample& right_sample
     );

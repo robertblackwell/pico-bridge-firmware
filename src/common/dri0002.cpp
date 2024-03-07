@@ -59,8 +59,8 @@ void PwmPiPico::begin(uint pwm_pin, uint direction_pin, uint wrap) {
 }
 void PwmPiPico::set_level(uint level)
 {
-	FTRACE("PicoPwm::set_level addr: %p pin: %u wrap:%u level:%u slice_num %u channel: %u direction: %d\n", 
-		this, m_pwm_pin, m_wrap, level, m_slice_num, m_channel, (int)m_direction)
+	print_fmt("PicoPwm::set_level addr: %p pin: %u wrap:%u level:%u slice_num %u channel: %u direction: %d\n", 
+		this, m_pwm_pin, m_wrap, level, m_slice_num, m_channel, (int)m_direction);
 	gpio_put(m_direction_pin, (m_direction == MotorDirection::forward)?1:0);
 	pwm_set_chan_level(m_slice_num, m_channel, level);
 	pwm_set_enabled(m_slice_num, true);
@@ -69,7 +69,7 @@ void PwmPiPico::set_pwm_percent(double percent)
 {
 	FTRACE("set_pwm_percent index:%d percent : %f\n", percent);
 	ASSERT_PRINTF((((0.00 <= percent) && (percent <= 100.00))), "PiPicoPwm - set_pwm_percent percent out of range 0.00 .. 100.00 %f ", percent);
-	uint level = (uint)65534 * percent / 100;
+	uint level = (uint)(65534.0 * percent / 100.0);
 	this->set_level(level);
 }
 // void PwmPiPico::set_direction(bool dir)

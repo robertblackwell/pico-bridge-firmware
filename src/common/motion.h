@@ -12,9 +12,9 @@ void dump_config(MotionControl* mp);
 /**
  * NOTE: left and right motors need to rotate in oposite direction to go straight.
  */
-class MotionControl : public Taskable
+class MotionControl
 {
-    public:
+public:
     struct RpmValue
     {
         double value{};
@@ -58,19 +58,22 @@ public:
     MotionControl(DRI0002V1_4 *dri0002, Encoder *encoder_left_ptr, Encoder *encoder_right_ptr);
     MotionControl(DRI0002V1_4 &dri0002, Encoder &encoder_left_ptr, Encoder &encoder_right_ptr);
     void begin(DRI0002V1_4 *dri0002, Encoder *encoder_left_ptr, Encoder *encoder_right_ptr);
+
     PwmPiPico* dri0002_left_side();
     PwmPiPico* dri002_right_side(); 
+
     void set_pwm_direction(double pwm_motor_left, MotorDirection direction_left, double pwm_motor_right, MotorDirection direction_right);
     void pid_set_rpm(double left_rpm, double right_rpm);
     void set_raw_pwm_percent(double percent_1, double percent_2) const;
     void set_pwm_percent(double percent_1, double percent_2) const;
-    void update_pid(double kp, double ki, double kd);
     void stop_all() const;
     // void read_encoders(); // not sure we need this
 
-    void apply_pid();
     void set_rpm_one_side(Side& side, RpmValue request);
+
     void run();
+    void apply_pid();
+    void update_pid(double kp, double ki, double kd);
 
     DRI0002V1_4 *m_dri0002_ptr;
     Side m_left_side;

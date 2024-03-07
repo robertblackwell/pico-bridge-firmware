@@ -58,22 +58,18 @@ int main()
 	robot_init();
 	Task cli_task(20, execute_commands);
 	Task heart_beat_task(5000, heart_beat);
-	Task collect_samples_task(20, &robot_collect_encoder_samples);
+	// Task collect_samples_task(200, &robot_collect_encoder_samples);
+	robot_start_encoder_sample_collection((uint64_t)100000);
 	while (1)
 	{
 		cli_task();
 		heart_beat_task();
-		collect_samples_task();
+		// collect_samples_task();
 	}
 }
 void heart_beat()
 {
 	printf("Heart beat \n");
-}
-void sample_collect(Encoder *left, Encoder *right)
-{
-	left->run();
-	right->run();
 }
 void execute_commands()
 {
@@ -103,7 +99,7 @@ void execute_commands()
 					double left_pwm, right_pwm;
 					if(validate_pwm(args, left_pwm, right_pwm)) {
 						robot_set_raw_pwm_percent(left_pwm, right_pwm);
-						transport::send_command_ok("MotorPwmPercent");
+						transport::send_command_ok("MotorPwmPercent %f  %f", left_pwm, right_pwm);
 					} else {
 						transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
 					}

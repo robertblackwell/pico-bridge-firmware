@@ -83,6 +83,7 @@ void MotionControl::set_rpm_one_side(Side& side, RpmValue new_request)
 
 MotionControl::MotionControl()
 {
+
 };
 MotionControl::MotionControl(DRI0002V1_4 *dri0002, Encoder *encoder_left_ptr, Encoder *encoder_right_ptr)
 {
@@ -160,7 +161,7 @@ void MotionControl::update_pid(double kp, double ki, double kd)
 	m_left_side.m_pid.change_constants(kp, ki, kd);
 	m_right_side.m_pid.change_constants(kp, ki, kd);
 }
-
+#if 0
 void MotionControl::run()
 {
 	bool got_some = false;
@@ -202,6 +203,7 @@ void MotionControl::apply_pid()
 	);
 	this->set_pwm_percent(new_left_pwm, new_right_pwm);
 }
+#endif
 /**
  * This function dumps the config associated with pin assignments
  * and interrupt handlers.

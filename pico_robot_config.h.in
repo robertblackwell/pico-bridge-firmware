@@ -1,0 +1,9 @@
+#define PICO_ROBOT_VERSION_MAJOR @pico_robot_VERSION_MAJOR@
+#define PICO_ROBOT_VERSION_MINOR @pico_robot_VERSION_MINOR@
+#define PICO_ROBOT_VERSION_PATCH @pico_robot_VERSION_PATCH@
+#include <stdio.h>
+const char* pico_robot_version_c_str()
+{
+    static char buf[10];
+    int n = snprintf(buf, 10, "v%1d.%1d.%1d");
+}

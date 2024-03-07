@@ -2,6 +2,8 @@
 #undef FDEBUG_ON
 #include <stdio.h>
 #include <cstdint>
+#include <pico/stdlib.h>
+
 #include <pico/stdio.h>
 #include <hardware/sync.h>
 #include <pico_gpio_irq_dispatcher.h>
@@ -10,7 +12,7 @@
 #include "encoder.h"
 #include "reporter.h"
 
-#define ISR_INTR_PER_MOTOR_REVOLUTION 24
+#define ISR_INTR_PER_MOTOR_REVOLUTION 48 //24
 //sample size should be a number of motor revolutions
 // There is a tradeoff - 
 //   longer intervals give more stability to the sample rpm and speed values, but 
@@ -96,6 +98,7 @@ void Encoder::start_interrupts() const
     attachGpioInterrupt(m_encoder_a_pin, m_isr_a);
     attachGpioInterrupt(m_encoder_b_pin, m_isr_b);
 }
+#if 0
 bool Encoder::available() const
 {
     return m_sample.s_available;
@@ -149,39 +152,35 @@ void Encoder::run()
     m_sample.s_wheel_rpm = m_sample.s_motor_rpm / ((float)ISR_GEAR_RATIO);
     m_sample.s_speed_mm_per_second = (m_sample.s_wheel_rpm * ISR_SECS_IN_MINUTE * (ISR_PI_VALUE)) / ISR_WHEEL_DIAMETER_MM;
 }
-void Encoder::reset_sample()
-{
-    m_isr_count = 0;
-    // this->m_isr_interval_count = 0;
-    // this->m_isr_saved_sample_sum = 0;
-    // this->m_isr_current_sample_sum = 0;
-    // this->m_isr_new_sample_sum_available_flag = false;
-}
-
+#endif
 void update_sample_from_isr(EncoderSample& sample);
 
 /**
  * WARNING - This function turns off interrupts
+ * Collect tick count and interval in microsecs since last collection
+ * from both encoders. Reset the tick count and start time after collection.
+ *
+ * Important not to miss a tick as that will corrupt the odometry calculations
 */
-void unsafe_collect_two(
+void unsafe_collect_two_encoder_samples(
     Encoder& left_encoder, EncoderSample& left_sample,
     Encoder& right_encoder, EncoderSample& right_sample
     ) 
 {
     uint32_t interrupt_status = save_and_disable_interrupts();
-    std::uint64_t m = micros(); 
+    uint64_t m = to_us_since_boot(get_absolute_time()); 
     {
-        left_sample.s_elapsed_usecs = (long)(m - left_encoder.m_isr_sample_starttime_usecs);
+        left_sample.s_elapsed_usecs = m - left_encoder.m_isr_sample_starttime_usecs;
         left_encoder.m_isr_sample_starttime_usecs = m; 
 
         left_sample.s_saved_interrupt_count = (long)left_encoder.m_isr_interrupt_count;
         left_encoder.m_isr_interrupt_count = 0;
 
-        left_sample.s_apin_state = left_encoder.m_apin_state;
-        left_sample.s_bpin_state = left_encoder.m_bpin_state;
+        // left_sample.s_apin_state = left_encoder.m_apin_state;
+        // left_sample.s_bpin_state = left_encoder.m_bpin_state;
     }
     {
-        right_sample.s_elapsed_usecs = (long)(m - right_encoder.m_isr_sample_starttime_usecs);
+        right_sample.s_elapsed_usecs = (m - right_encoder.m_isr_sample_starttime_usecs);
         right_sample.s_saved_interrupt_count = (long)right_encoder.m_isr_interrupt_count;
         right_encoder.m_isr_interrupt_count = 0;
         right_encoder.m_isr_sample_starttime_usecs = m; 
@@ -194,6 +193,11 @@ void unsafe_collect_two(
     update_sample_from_isr(right_sample);
 }
 
+/**
+ * Take the data collected for a single encoder in 'unsafe_collect_two_encoder_samples`
+ * and perform the calcs necessary to get motor rpm, wheel rpm and wheel speed.
+ * @param sample
+ */
 void update_sample_from_isr(EncoderSample& sample)
 {
     sample.s_contains_data = true;
@@ -203,7 +207,6 @@ void update_sample_from_isr(EncoderSample& sample)
         sample.s_speed_mm_per_second = 0.0;
         sample.s_musecs_per_interrupt  =	0.0;
         sample.s_musecs_per_motor_revolution =	0.0;
-
     } else {
         sample.s_pin_state = pin_state(sample.s_apin_state, sample.s_bpin_state); 
         sample.s_musecs_per_interrupt  =	((float)sample.s_elapsed_usecs)/((float)sample.s_saved_interrupt_count);
@@ -215,114 +218,9 @@ void update_sample_from_isr(EncoderSample& sample)
     }
 }
 
-#if 0
-// global definition of 2 encoder objects
-Encoder g_encoder_left;
-Encoder g_encoder_right;
-#endif
-
 void encoder_common_isr(Encoder* encoder_ptr)
 {
-    #if 1
-    int a_value = digital_read(encoder_ptr->m_encoder_a_pin);
-    int b_value = digital_read(encoder_ptr->m_encoder_b_pin);
-    encoder_ptr->m_apin_state = a_value;
-    encoder_ptr->m_bpin_state = b_value;
-    #if 0
-    state_machine(a_value, b_value);
-    #endif
-    #endif
-#define ENCODER_ISR_ALGORITHM_V3
-#ifdef ENCODER_ISR_ALGORITHM_V1
-    Encoder* ep = encoder_ptr;
-	if(ep->m_isr_count == 0) {
-		ep->m_isr_interval_count = 0;
-		ep->m_isr_previous_millis = micros();
-		ep->m_isr_current_sample_sum = 0;
-		ep->m_isr_saved_sample_sum = 0;
-	} else {
-		long musecs = micros();
-        ep->m_isr_timestamp_musecs = musecs;
-		long interval = (musecs - ep->m_isr_previous_millis);
-		ep->m_isr_previous_millis = musecs;
-		ep->m_isr_current_sample_sum += interval;
-	}
-	ep->m_isr_interval_count++;
-	if(ep->m_isr_interval_count >= ISR_SAMPLE_SIZE) {
-		ep->m_isr_interval_count = 0;
-		ep->m_isr_saved_sample_sum = ep->m_isr_current_sample_sum;
-		ep->m_isr_current_sample_sum = 0;
-        ep->m_isr_new_sample_sum_available_flag = true;
-	}
-	ep->m_isr_count++;
-    
-#elif defined(ENCODER_ISR_ALGORITHM_V2)
-
-    Encoder* ep = encoder_ptr;
-    ep->m_isr_last_report = 3;
-    if(ep->m_isr_interval_count == 0) {
-        ep->m_isr_last_report = 4;
-        ep->m_isr_previous_millis = micros();
-        ep->m_isr_interval_count++;
-    } else if(ep->m_isr_interval_count < ISR_SAMPLE_SIZE) {
-        ep->m_isr_last_report = 5;
-        ep->m_isr_interval_count++;
-    } else if(ep->m_isr_interval_count == ISR_SAMPLE_SIZE) {
-        ep->m_isr_last_report = 6;
-        auto m = micros();
-        ep->m_isr_timestamp_musecs = m;
-        ep->m_isr_saved_sample_sum = (m - ep->m_isr_previous_millis);
-        ep->m_isr_new_sample_sum_available_flag = true;
-        ep->m_isr_interval_count = 0;
-    } else {
-        ep->m_isr_last_report = 6;
-
-    }
-    #elif defined(ENCODER_ISR_ALGORITHM_V3)
-    Encoder* ep = encoder_ptr;
-    ep->m_isr_interrupt_count++;
-#endif
+    // encoder_ptr->m_apin_state = digital_read(encoder_ptr->m_encoder_a_pin);
+    // encoder_ptr->m_bpin_state = digital_read(encoder_ptr->m_encoder_b_pin);
+    encoder_ptr->m_isr_interrupt_count++;
 }
-#if 0
-void irq_handler_left_apin()
-{   
-    // printf("irq_handler_left_apin\n");
-    // return;
-    Encoder* tmp = reinterpret_cast<Encoder*>(&g_encoder_left);
-    encoder_common_isr(tmp);
-}
-void irq_handler_left_bpin()
-{   
-    // printf("irq_handler_left_bpin\n");
-    return;
-    Encoder* tmp = reinterpret_cast<Encoder*>(&g_encoder_left);
-    encoder_common_isr(tmp);
-}
-void irq_handler_right_apin()
-{
-    // printf("irq_handler_right_apin\n");
-    // return;
-    Encoder* tmp = reinterpret_cast<Encoder*>(&g_encoder_right);
-    encoder_common_isr(tmp);
-}
-void irq_handler_right_bpin()
-{
-    // printf("irq_handler_right_bpin\n");
-    return;
-    Encoder* tmp = reinterpret_cast<Encoder*>(&g_encoder_right);
-    encoder_common_isr(tmp);
-}
-Encoder* make_encoder_left()
-{
-    g_encoder_left.m_isr_a = irq_handler_left_apin;
-    g_encoder_left.m_isr_b = irq_handler_left_bpin;
-
-    return (&g_encoder_left);
-}
-Encoder* make_encoder_right()
-{
-    g_encoder_right.m_isr_a = irq_handler_right_apin;
-    g_encoder_right.m_isr_b = irq_handler_right_bpin;
-    return (&g_encoder_right);
-}
-#endif
