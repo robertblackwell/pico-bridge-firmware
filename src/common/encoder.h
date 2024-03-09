@@ -62,7 +62,6 @@ class Encoder
     /**
      * properties used by the isr
     */
-    volatile long    m_isr_timestamp_musecs;
     volatile bool    m_isr_new_sample_sum_available_flag;
     volatile long    m_isr_last_report;
     volatile long    m_isr_report_interval;
@@ -78,6 +77,8 @@ class Encoder
     volatile uint8_t            m_bpin_state;
     volatile uint32_t           m_isr_interrupt_count;
     volatile uint64_t           m_isr_sample_starttime_usecs;
+    volatile uint64_t           m_isr_sample_most_recent_time_usecs;
+    volatile uint64_t           m_isr_timestamp_musecs;
 };
 /**
  * WARNING - This function turns off interrupts

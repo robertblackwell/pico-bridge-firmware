@@ -7,15 +7,18 @@
 struct EncoderSample
 {
     bool        s_contains_data;
-    long        s_timestamp_musecs{};
-    long        s_sample_sum{};
-    const char* s_pin_state{};
-    bool        s_apin_state{};
-    bool        s_bpin_state{};
-    bool        s_available{};
+    long        s_sample_sum;
+    const char* s_pin_state;
+    bool        s_apin_state;
+    bool        s_bpin_state;
+    bool        s_available;
 
-    uint64_t            s_elapsed_usecs{};
-    uint32_t            s_saved_interrupt_count{};
+
+    uint64_t            s_starttime_us;
+    uint64_t            s_endtime_us;
+    uint64_t            s_elapsed_usecs;
+    uint32_t            s_saved_interrupt_count;
+    // uint64_t            s_timestamp_musecs;
     
     // the remaining fields are set in the Encoder.run function not in the common interrupt handler
     // and hence are derived from the raw sample values above
@@ -47,7 +50,7 @@ struct EncoderSample
         s_speed_mm_per_second = 0.0;
         s_musecs_per_interrupt = 0.0;
         s_musecs_per_motor_revolution = 0.0;
-        s_elapsed_usecs = get_absolute_time();
+        s_elapsed_usecs = 0;
         s_saved_interrupt_count = 0;
         s_wheel_rps = 0.0;
     }

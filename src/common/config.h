@@ -95,6 +95,31 @@
 #define PID_RPM_MIN 3500.0
 #define PID_RPM_MAX 7500.0
 #define PID_PWM_MAX 100.0
-#define PID_PWM_MIN 35.0
+#define PID_PWM_MIN 35.
+
+/**
+ * Used by encoder isr and encoder_sample collection
+*/
+#define ISR_ATTACH_TO_PIN_A
+#undef ISR_ATTACH_TO_PIN_B
+#if defined(ISR_ATTACH_TO_PIN_A) && defined(ISR_ATTACH_TO_PIN_B)
+    #define ISR_INTR_PER_MOTOR_REVOLUTION 48 //24
+    #define ISR_SAMPLE_SIZE (ISR_INTR_PER_MOTOR_REVOLUTION * 6)
+#elif defined(ISR_ATTACH_TO_PIN_A) || defined(ISR_ATTACH_TO_PIN_B)
+    #define ISR_INTR_PER_MOTOR_REVOLUTION 24
+    #define ISR_SAMPLE_SIZE (ISR_INTR_PER_MOTOR_REVOLUTION * 6)
+#endif
+//sample size should be a number of motor revolutions
+// There is a tradeoff - 
+//   longer intervals give more stability to the sample rpm and speed values, but 
+//   longer intervals also mean less ability to react fast and average out acceleration
+//
+#define ISR_PI_VALUE 3.14159265
+#define ISR_SECS_IN_MINUTE 60.0
+#define ISR_GEAR_RATIO 226.76
+#define ISR_WHEEL_DIAMETER_MM 70.0
+
+
+
 #endif
 #endif

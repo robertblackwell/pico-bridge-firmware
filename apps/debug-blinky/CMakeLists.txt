@@ -1,0 +1,6 @@
+set(TARGET debug_blinky)
+add_executable(debug_blinky debug_blinky.cpp)
+pico_enable_stdio_usb(debug_blinky 1)
+pico_enable_stdio_uart(debug_blinky 0)
+pico_add_extra_outputs(debug_blinky)
+target_link_libraries(debug_blinky pico_stdlib pico_unique_id)

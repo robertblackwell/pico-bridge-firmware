@@ -12,6 +12,7 @@
 #include "encoder.h"
 #include "reporter.h"
 
+#if 0
 #define ISR_INTR_PER_MOTOR_REVOLUTION 48 //24
 //sample size should be a number of motor revolutions
 // There is a tradeoff - 
@@ -30,7 +31,7 @@
 #define STATE_A1B0  2
 #define STATE_A0B1  1
 #define STATE_A0B0  0
-
+#endif
 
 
 #if 0
@@ -90,13 +91,22 @@ void Encoder::begin(int id, const char* name, int encoder_apin, int encoder_bpin
     m_isr_last_report = 0;
     m_isr_new_sample_sum_available_flag = false;
     m_sample.s_available = false;
+    
+    #ifdef ISR_ATTACH_TO_PIN_A
     attachGpioInterrupt(m_encoder_a_pin, m_isr_a);
+    #endif
+    #ifdef ISR_ATTACH_TO_PIN_B 
     attachGpioInterrupt(m_encoder_b_pin, m_isr_b);
+    #endif
 }
 void Encoder::start_interrupts() const
 {
+    #ifdef ISR_ATTACH_TO_PIN_A
     attachGpioInterrupt(m_encoder_a_pin, m_isr_a);
+    #endif
+    #ifdef ISR_ATTACH_TO_PIN_B 
     attachGpioInterrupt(m_encoder_b_pin, m_isr_b);
+    #endif
 }
 #if 0
 bool Encoder::available() const
@@ -168,24 +178,36 @@ void unsafe_collect_two_encoder_samples(
     ) 
 {
     uint32_t interrupt_status = save_and_disable_interrupts();
-    uint64_t m = to_us_since_boot(get_absolute_time()); 
+    #if 0
+    uint64_t mleft = to_us_since_boot(get_absolute_time()); 
+    uint64_t mright = m_left); 
+    #else
+    uint64_t mleft  =  left_encoder.m_isr_sample_most_recent_time_usecs; 
+    uint64_t mright = right_encoder.m_isr_sample_most_recent_time_usecs; 
+    #endif
     {
-        left_sample.s_elapsed_usecs = m - left_encoder.m_isr_sample_starttime_usecs;
-        left_encoder.m_isr_sample_starttime_usecs = m; 
+        left_sample.s_starttime_us = left_encoder.m_isr_sample_starttime_usecs;
+        left_sample.s_endtime_us = left_encoder.m_isr_sample_most_recent_time_usecs;
 
+        left_sample.s_elapsed_usecs = mleft - left_encoder.m_isr_sample_starttime_usecs;
+        left_encoder.m_isr_sample_starttime_usecs = mleft; 
         left_sample.s_saved_interrupt_count = (long)left_encoder.m_isr_interrupt_count;
         left_encoder.m_isr_interrupt_count = 0;
-
+        // left_encoder.m_sample.s_timestamp_musecs = mleft;
         // left_sample.s_apin_state = left_encoder.m_apin_state;
         // left_sample.s_bpin_state = left_encoder.m_bpin_state;
     }
     {
-        right_sample.s_elapsed_usecs = (m - right_encoder.m_isr_sample_starttime_usecs);
+        right_sample.s_starttime_us = right_encoder.m_isr_sample_starttime_usecs;
+        right_sample.s_endtime_us   = right_encoder.m_isr_sample_most_recent_time_usecs;
+        right_sample.s_elapsed_usecs = (mright - right_encoder.m_isr_sample_starttime_usecs);
         right_sample.s_saved_interrupt_count = (long)right_encoder.m_isr_interrupt_count;
         right_encoder.m_isr_interrupt_count = 0;
-        right_encoder.m_isr_sample_starttime_usecs = m; 
-        right_sample.s_apin_state = right_encoder.m_apin_state;
-        right_sample.s_bpin_state = right_encoder.m_bpin_state;
+        right_encoder.m_isr_sample_starttime_usecs = mright; 
+        // right_sample.s_timestamp_musecs = mright;
+        // left_encoder.m_sample.s_timestamp_musecs = mright;
+        // right_sample.s_apin_state = right_encoder.m_apin_state;
+        // right_sample.s_bpin_state = right_encoder.m_bpin_state;
     }
     restore_interrupts(interrupt_status);
 
@@ -222,5 +244,7 @@ void encoder_common_isr(Encoder* encoder_ptr)
 {
     // encoder_ptr->m_apin_state = digital_read(encoder_ptr->m_encoder_a_pin);
     // encoder_ptr->m_bpin_state = digital_read(encoder_ptr->m_encoder_b_pin);
-    encoder_ptr->m_isr_interrupt_count++;
+    encoder_ptr->m_isr_interrupt_count = encoder_ptr->m_isr_interrupt_count + 1;
+    // encoder_ptr->m_isr_timestamp_musecs = micros();
+    encoder_ptr->m_isr_sample_most_recent_time_usecs = micros();
 }

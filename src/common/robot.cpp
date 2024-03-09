@@ -106,8 +106,11 @@ void tojson_encoder_samples(transport::buffer::Handle buffer_h)
 }
 bool timer_callback(repeating_timer_t* timer)
 {
-    unsafe_collect_two_encoder_samples(*encoder_left_ptr, encoder_left_ptr->m_sample, *encoder_right_ptr,
-                                       encoder_right_ptr->m_sample);
+    unsafe_collect_two_encoder_samples(
+        *encoder_left_ptr, 
+        encoder_left_ptr->m_sample, 
+        *encoder_right_ptr,
+        encoder_right_ptr->m_sample);
     return true;
 }
 void robot_start_encoder_sample_collection(uint64_t sample_interval_us)
