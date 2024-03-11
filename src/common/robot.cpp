@@ -14,13 +14,6 @@
 #include "motion.h"
 #include "transport/buffers.h"
 
-#define RAII_ENCODER
-#ifdef RAII_ENCODER
-/*
-************************************************************************
-* RAII initialization
-************************************************************************
-*/
 DRI0002V1_4 dri0002{
 		MOTOR_RIGHT_DRI0002_SIDE, 
 		MOTOR_RIGHT_PWM_PIN, 				// E1
@@ -51,22 +44,11 @@ void isr_bpin_right(){encoder_common_isr(&encoder_right);} // only want interrup
 Encoder* encoder_left_ptr = &encoder_left;
 Encoder* encoder_right_ptr = &encoder_right;
 MotionControl motion_controller{&dri0002, encoder_left_ptr, encoder_right_ptr};
-/*
-************************************************************************
-* RAII initialization
-************************************************************************
-*/
-#else
-#endif
 
 void robot_init()
 {
-#ifdef RAII_ENCODER
 	encoder_left_ptr->start_interrupts();
 	encoder_right_ptr->start_interrupts();
-#else
-#endif
-
 }
 
 void robot_set_raw_pwm_percent(double left_pwm_percent, double right_pwm_percent)
@@ -77,22 +59,24 @@ void robot_set_pwm_percent(double left_pwm_percent, double right_pwm_percent)
 {
     motion_controller.set_pwm_percent(left_pwm_percent, right_pwm_percent);
 }
-void robot_set_rpm(double left_rpm, double right_rpm)
+bool robot_set_rpm(double left_rpm, double right_rpm)
 {
+    if(!motion_controller.verify_left_rpm_settable((float)left_rpm)) {
+//        robot_error_msg = "left rpm value invalid probably trying to change direction without stopping";
+        return false;
+    }
+    if(!motion_controller.verify_right_rpm_settable((float)right_rpm)) {
+//        robot_error_msg = "left rpm value invalid probably trying to change direction without stopping";
+        return false;
+    }
     motion_controller.pid_set_rpm(left_rpm, right_rpm);
+    return true;
 }
 void robot_stop_all()
 {
     motion_controller.stop_all();
 }
-void robot_request(int n)
-{
-    // reporter.request(n);
-}
-void robot_update_pid(double kp, double ki, double kd)
-{
-    motion_controller.update_pid(kp, ki, kd);
-}
+
 
 void tojson_encoder_samples(transport::buffer::Handle buffer_h)
 {
@@ -111,12 +95,14 @@ bool timer_callback(repeating_timer_t* timer)
         encoder_left_ptr->m_sample, 
         *encoder_right_ptr,
         encoder_right_ptr->m_sample);
+    // update closed loop controller
     return true;
 }
 void robot_start_encoder_sample_collection(uint64_t sample_interval_us)
 {
     static repeating_timer_t timer;
     add_repeating_timer_us(+sample_interval_us, &timer_callback, NULL, &timer);
+    // start encoder interrupts here
 }
 void robot_collect_encoder_samples()
 {

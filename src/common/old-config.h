@@ -94,14 +94,8 @@
 #define PID_RPM_ZERO 100.0
 #define PID_RPM_MIN 3500.0
 #define PID_RPM_MAX 7500.0
-#define PID_RPM_INT_ZERO 100
-#define PID_RPM_INT_MIN 3500
-#define PID_RPM_INT_MAX 7500
-
 #define PID_PWM_MAX 100.0
-#define PID_PWM_MIN 25.0
-#define PID_PWM_INT_MAX 100
-#define PID_PWM_INT_MIN 25
+#define PID_PWM_MIN 35.
 
 /**
  * Used by encoder isr and encoder_sample collection

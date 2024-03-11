@@ -13,6 +13,7 @@ enum class MotorSide
 	left = MOTOR_LEFT_DRI0002_SIDE,
 	right= MOTOR_RIGHT_DRI0002_SIDE
 };
+using DriveSide = MotorSide;
 
 MotorDirection default_motor_direction(MotorSide mside);
 MotorDirection reverse_motor_direction(MotorDirection dir);

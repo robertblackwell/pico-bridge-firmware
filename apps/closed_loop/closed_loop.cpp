@@ -128,8 +128,6 @@ void execute_commands()
 				{
 					int number = 1;
 					if(validate_encoder_read(args)) {
-						// printf("%s\n", to_string(enumname));
-						robot_request(number);
 						Handle h = tx_pool::allocate();
 						tojson_encoder_samples(h);
 						transport::send_json_response(&h);

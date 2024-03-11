@@ -169,9 +169,9 @@ MotorDirection DRI0002V1_4::get_direction_pin_state(MotorSide side)
 	ASSERT_PRINTF((((0 <= local_index) && (local_index <= 1))), "DRI0002 - set_pwm_percent index out of range %d ", local_index);
 	return m_sides[local_index]->m_direction;
 }
-PwmPiPico* DRI0002V1_4::get_pwmpipico(MotorSide side)
-{
-	uint local_index = side2index(side);
-	ASSERT_PRINTF((((0 <= local_index) && (local_index <= 1))), "DRI0002 - set_pwm_percent index out of range %d ", local_index);
-	return m_sides[local_index];
-}
+// PwmPiPico* DRI0002V1_4::get_pwmpipico(MotorSide side)
+// {
+// 	uint local_index = side2index(side);
+// 	ASSERT_PRINTF((((0 <= local_index) && (local_index <= 1))), "DRI0002 - set_pwm_percent index out of range %d ", local_index);
+// 	return m_sides[local_index];
+// }

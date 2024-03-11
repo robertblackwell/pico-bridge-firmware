@@ -32,6 +32,7 @@ set(COMMON_SOURCE_FILES
     ${COMMON_SRC_DIR}/cli/argv.h
     ${COMMON_SRC_DIR}/cli/commands.h
     ${COMMON_SRC_DIR}/cli/commands.cpp
+    ${COMMON_SRC_DIR}/cli/execute_commands.cpp
 
     ${COMMON_SRC_DIR}/enum.cpp
     ${COMMON_SRC_DIR}/enum.h

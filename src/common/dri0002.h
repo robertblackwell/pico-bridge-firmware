@@ -74,7 +74,15 @@ class DRI0002V1_4
 	void set_direction_pin_state(MotorSide side, MotorDirection direction);
 	
 	MotorDirection get_direction_pin_state(MotorSide side);
-	PwmPiPico* get_pwmpipico(MotorSide side);
+	
+	inline PwmPiPico* get_pwmpipico(MotorSide side)
+	{
+		return (side == MotorSide::left) ? &m_pwm_1: &m_pwm_2;
+	}
+	inline PwmPiPico* get_pwm_pico(MotorSide side)
+	{
+		return (side == MotorSide::left) ? &m_pwm_1: &m_pwm_2;
+	}
 
 	private:
 	int m_pin_E1;
