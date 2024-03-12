@@ -80,6 +80,13 @@ class Encoder
     volatile uint64_t           m_isr_sample_most_recent_time_usecs;
     volatile uint64_t           m_isr_timestamp_musecs;
 };
+
+#define ENCODER_ISR_DEF(isr_name, encoder_ptr) \
+void _time_critical(isr_name)() { \
+    encoder_ptr->m_isr_interrupt_count = ep->m_isr_interrupt_count + 1; \
+    encoder_ptr->m_isr_sample_most_recent_time_us = micros(); \
+} 
+
 /**
  * WARNING - This function turns off interrupts
 */

@@ -2,6 +2,7 @@
 #undef FTRACE_ON
 #include "robot.h"
 #include <stdio.h>
+#include <pico/platform.h>
 #include <hardware/gpio.h>
 #include <hardware/pwm.h>
 
@@ -25,21 +26,45 @@ DRI0002V1_4 dri0002{
 };
 
 /**
- * Encoders must funnel all their interrupts through a common isr handler but must pass a pointer to their
- * Encoder istance to that common isr. This is the least tricky way I can find of doing that
+ * The following is a bit arcane
+ * It chooses between two strategies for encoder ISRs. Each encoder needs 2 ISRs - one each for PINS A and B.
+ * The code is the same for pin A and B. Infact the code is the same for all Encoder ISRs all that changes is
+ * the encoder it self.
+ *
+ * there are currently 2 strategies for handling this:
+ *
+ * 1.   Encoders funnel all their interrupts through a common isr handler but must pass a pointer to their
+ *      Encoder instance to that common isr. This is the least tricky way I can find of doing that
+ *
+ * 2.   Encoder ISR code is short enough to justify repeating it in ISR.
 */
+#ifdef ISR_COMMON_FUNCTION
+#define ISR_GUTS(enc) \
+    encoder_common_isr(&enc);
+#else
+#define ISR_GUTS(enc) \
+    enc.m_isr_interrupt_count = encoder_left.m_isr_interrupt_count + 1; \
+    enc.m_isr_sample_most_recent_time_usecs = micros();
+#endif
 void isr_apin_left();
 void isr_bpin_left();
-
 Encoder encoder_left{MOTOR_LEFT_ID, MOTOR_LEFT_NAME, MOTOR_LEFT_ENCODER_A_INT, MOTOR_LEFT_ENCODER_B_INT, isr_apin_left, isr_bpin_left};
-void isr_apin_left(){encoder_common_isr(&encoder_left);}
-void isr_bpin_left(){encoder_common_isr(&encoder_left);} // only want interrupts on the a-pin
+void isr_apin_left() {
+    ISR_GUTS(encoder_left)
+}
+void isr_bpin_left() {
+    ISR_GUTS(encoder_left)
+}
 
 void isr_apin_right();
 void isr_bpin_right();
 Encoder encoder_right{MOTOR_RIGHT_ID, MOTOR_RIGHT_NAME, MOTOR_RIGHT_ENCODER_A_INT, MOTOR_RIGHT_ENCODER_B_INT, isr_apin_right, isr_bpin_right};
-void isr_apin_right(){encoder_common_isr(&encoder_right);}
-void isr_bpin_right(){encoder_common_isr(&encoder_right);} // only want interrupts on the a-pin
+void isr_apin_right() {
+    ISR_GUTS(encoder_right)
+}
+void isr_bpin_right() {
+    ISR_GUTS(encoder_right)
+}
 
 Encoder* encoder_left_ptr = &encoder_left;
 Encoder* encoder_right_ptr = &encoder_right;

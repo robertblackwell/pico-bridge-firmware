@@ -12,34 +12,6 @@
 #include "encoder.h"
 #include "reporter.h"
 
-#if 0
-#define ISR_INTR_PER_MOTOR_REVOLUTION 48 //24
-//sample size should be a number of motor revolutions
-// There is a tradeoff - 
-//   longer intervals give more stability to the sample rpm and speed values, but 
-//   longer intervals also mean less ability to react fast and average out acceleration
-//
-#define ISR_SAMPLE_SIZE (ISR_INTR_PER_MOTOR_REVOLUTION * 6)
-#define ISR_PI_VALUE 3.14159265
-#define ISR_SECS_IN_MINUTE 60.0
-#define ISR_GEAR_RATIO 226.76
-#define ISR_WHEEL_DIAMETER_MM 70.0
-
-#define STATE_ERROR 5
-#define STATE_INITIAL 4
-#define STATE_A1B1  3
-#define STATE_A1B0  2
-#define STATE_A0B1  1
-#define STATE_A0B0  0
-#endif
-
-
-#if 0
-void irq_handler_left_apin();
-void irq_handler_right_apin();
-void irq_handler_left_bpin();
-void irq_handler_right_bpin();
-#endif
 
 const char* pin_state(uint8_t apin_state, uint8_t bpin_state)
 {
@@ -92,8 +64,9 @@ void Encoder::begin(int id, const char* name, int encoder_apin, int encoder_bpin
     m_isr_new_sample_sum_available_flag = false;
     m_sample.s_available = false;
     
+
     #ifdef ISR_ATTACH_TO_PIN_A
-    attachGpioInterrupt(m_encoder_a_pin, m_isr_a);
+    // attachGpioInterrupt(m_encoder_a_pin, m_isr_a);
     #endif
     #ifdef ISR_ATTACH_TO_PIN_B 
     attachGpioInterrupt(m_encoder_b_pin, m_isr_b);

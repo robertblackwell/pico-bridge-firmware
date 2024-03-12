@@ -106,8 +106,12 @@
 /**
  * Used by encoder isr and encoder_sample collection
 */
-#define ISR_ATTACH_TO_PIN_A
-#undef ISR_ATTACH_TO_PIN_B
+#define ISR_COMMON_FUNCTION // if defined eachs ecnoders A and B pin ISRs call a common function to
+                            // do their work. If not defined the ISR body is repeated in each ISR
+#define ISR_START_EXLICIT   // if defined encoder interrupts are not enabled until Encoder::start_interrupts() is called
+#define ISR_ATTACH_TO_PIN_A // if defined an encoder ISR will be attached to pin A for all motors.
+#define ISR_ATTACH_TO_PIN_B // if defined an encoder ISR will be attached to pin B for all motors.
+
 #if defined(ISR_ATTACH_TO_PIN_A) && defined(ISR_ATTACH_TO_PIN_B)
     #define ISR_INTR_PER_MOTOR_REVOLUTION 48 //24
     #define ISR_SAMPLE_SIZE (ISR_INTR_PER_MOTOR_REVOLUTION * 6)
