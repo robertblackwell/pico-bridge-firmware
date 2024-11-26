@@ -35,15 +35,15 @@ make
 This will require the __Pico c/c++ SDK__ on your system and the 
 that special `PICO_....` environment variables are set. See the SDK documentation for details.
 
-# Loading the firward into the Pico
+# Loading the firmware into the Pico
 
 Again this is standard-operating-procedure.
 
 Find the relevant `uf2` file in `build/src/<package-name>/<package>.uf2`.
 
-Put the Pico ito mass storage mode (reset, disconnect, re-connect).
+Put the Pico in to mass storage mode (reset, disconnect, re-connect).
 
-Copy the desired package to the Pico on y linux machine that looks like (from within the build dirrectory).
+Copy the desired package to the Pico on your linux machine that looks like (from within the build dirrectory).
 
 ```bash
 cp src/bridge/bridge.uf2  /media/user-name/RPI-RP2/
