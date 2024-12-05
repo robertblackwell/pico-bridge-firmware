@@ -117,6 +117,15 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
             }
             break;
         }
+        case CommandName::Help:
+            printf("Commands: \n");
+            printf("    w/pwm left      right       Set pwm percentage for each motors, values in range -100 .. 100\n");
+            printf("    r/rpm left_rpm  right_rpm   Set speed of each motor in revs per minute\n");
+            printf("    s                           Stop both motors \n");
+            printf("    e                           Read both encoders\n");
+            printf("    c                           Echo what ever follows the 'c'\n");
+            printf("    ?                           Help - print this message\n");
+        
         default: {
             FTRACE("Execute command case default\n");
             transport::send_command_error("Unknowncommand");

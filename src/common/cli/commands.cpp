@@ -204,6 +204,7 @@ CommandName command_lookup(const char* first_arg) {
         {"u", "upid",    CLI_COMMAND_UPDATE_PIDARGS,    CommandName::PidArgsUpdate},
         {"e", "encoder", CLI_COMMAND_READ_ENCODERS,     CommandName::EncodersRead},
         {"l", "load",    CLI_COMMAND_TAG_LOADTEST,      CommandName::LoadTest},
+        {"?", "help",    CLI_COMMAND_TAG_LOADTEST,      CommandName::Help},
         {"x", "raw",     CLI_COMMAND_TAG_NONE,          CommandName::None},
 
         NULL

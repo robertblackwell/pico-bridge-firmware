@@ -30,6 +30,7 @@ void heart_beat();
 #include "pico/stdlib.h"
 #include <pico/error.h>
 #include <cli/execute_commands.h>
+#include <version.h>
 
 using namespace transport::buffer;
 
@@ -55,7 +56,7 @@ int main()
 	stdio_set_translate_crlf(&stdio_usb, false);
 	trace_init();
 	sleep_ms(5000);
-	print_fmt("bridge starting ... \n");
+	print_fmt("bridge (version: %s ) starting ... \n", VERSION_NUMBER);
 	robot_init();
 	Task cli_task(20, do_commands);
 	Task heart_beat_task(5000, heart_beat);

@@ -37,7 +37,8 @@ enum class CommandName
     PidArgsUpdate = 'u',
     EncodersRead = 'e',
     Echo = 'c',
-    LoadTest = 'l'
+    LoadTest = 'l',
+    Help = '?'
 };
 inline const char* to_string(CommandName en)
 {
@@ -69,6 +70,10 @@ inline const char* to_string(CommandName en)
             break;
         case CommandName::LoadTest:
             s = "Loadtest";
+            break;
+        case CommandName::Help:
+            s = "Help";
+            break;
     }
     return s;
 }
@@ -80,5 +85,6 @@ bool validate_stop(Argv& args);
 bool validate_echo(Argv& args);
 bool validate_encoder_read(Argv& args);
 bool validate_loadtest(Argv& args, int& count, int& length, int& num_per_second);
+bool validate_help(Argv& args);
 
 #endif

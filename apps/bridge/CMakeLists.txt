@@ -1,9 +1,13 @@
 
+set(VERSION_NUMBER   ${BRANCH_HASH})
+configure_file(version_template.h.in version.h)
+
 add_executable(bridge 
     bridge.cpp
     ${COMMON_SOURCE_FILES}
 )
 target_include_directories(bridge PRIVATE 
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${COMMON_SRC_DIR}
     ${PICO_FIRMWARE_DIR}
     ${PROJECT_BINARY_DIR}
