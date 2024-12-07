@@ -205,6 +205,7 @@ CommandName command_lookup(const char* first_arg) {
         {"e", "encoder", CLI_COMMAND_READ_ENCODERS,     CommandName::EncodersRead},
         {"l", "load",    CLI_COMMAND_TAG_LOADTEST,      CommandName::LoadTest},
         {"?", "help",    CLI_COMMAND_TAG_LOADTEST,      CommandName::Help},
+        {"b", "reset",   CLI_COMMAND_TAG_NONE,          CommandName::SoftwareReset},
         {"x", "raw",     CLI_COMMAND_TAG_NONE,          CommandName::None},
 
         NULL

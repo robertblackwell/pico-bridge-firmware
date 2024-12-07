@@ -117,6 +117,9 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
             }
             break;
         }
+        case CommandName::SoftwareReset:
+            *((volatile uint32_t*)(PPB_BASE + 0x0ED0C)) = 0x5FA0004;
+            break;
         case CommandName::Help:
             printf("Commands: \n");
             printf("    w/pwm left      right       Set pwm percentage for each motors, values in range -100 .. 100\n");
@@ -124,6 +127,7 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
             printf("    s                           Stop both motors \n");
             printf("    e                           Read both encoders\n");
             printf("    c                           Echo what ever follows the 'c'\n");
+            printf("    b                           Software Reset\n");
             printf("    ?                           Help - print this message\n");
         
         default: {
@@ -131,6 +135,7 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
             transport::send_command_error("Unknowncommand");
             break;
         }
+
     }
 
     #endif

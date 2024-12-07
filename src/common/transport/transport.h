@@ -23,7 +23,8 @@ namespace transport {
 enum ContentType {
     OK_RESPONSE = 'P',
     ERROR_RESPONSE = 'P',
-    JSON_RESONSE = 'J'
+    JSON_RESONSE = 'J',
+    BOOT_MESSAGE = 'B',
 };
 
 enum Channel {
@@ -54,6 +55,7 @@ struct Reader {
 
 void send_command_ok(const char* fmt, ...);
 void send_command_error(const char* fmt, ...);
+void send_boot_message(const char* fmt, ...);
 void send_json_response(transport::buffer::Handle* buffer_handle);
 
 } // end namespace transport

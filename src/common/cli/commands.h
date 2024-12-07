@@ -38,7 +38,8 @@ enum class CommandName
     EncodersRead = 'e',
     Echo = 'c',
     LoadTest = 'l',
-    Help = '?'
+    Help = '?',
+    SoftwareReset = 'b',
 };
 inline const char* to_string(CommandName en)
 {
@@ -74,6 +75,8 @@ inline const char* to_string(CommandName en)
         case CommandName::Help:
             s = "Help";
             break;
+        case CommandName::SoftwareReset:
+            s = "SoftwareReset";
     }
     return s;
 }

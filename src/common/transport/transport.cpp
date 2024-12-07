@@ -100,6 +100,16 @@ void transport::send_command_error(const char* fmt, ...)
     transport_send(h, '1', 'P');
     tx_pool::deallocate(h);
 }
+void transport::send_boot_message(const char *fmt, ...)
+{
+    transport::buffer::Handle h = tx_pool::allocate();
+    va_list(args);
+    va_start(args, fmt);
+    transport::buffer::sb_vsprintf(h, fmt, args);
+    va_end(args);
+    transport_send(h, '1', 'B');
+    tx_pool::deallocate(h);
+}
 void transport::send_json_response(transport::buffer::Handle* hp)
 {
     transport::buffer::Handle h = *(hp);

@@ -1,7 +1,3 @@
-
-set(VERSION_NUMBER   ${BRANCH_HASH})
-configure_file(version_template.h.in version.h)
-
 add_executable(bridge 
     bridge.cpp
     ${COMMON_SOURCE_FILES}

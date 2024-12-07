@@ -103,7 +103,7 @@ void receiver()
                     absolute_time_t stop_time = get_absolute_time();
                     // printf("before now\n");
                     auto now = to_us_since_boot(get_absolute_time());
-                    recv_end_time = now;
+                    recv_end_time._private_us_since_boot = now;
                     // printf("now %llu\n", now);
                     auto then = to_us_since_boot(recv_start_time);
                     // printf("then %llu\n", now);
