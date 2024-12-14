@@ -62,7 +62,7 @@ int main()
 	Task cli_task(20, do_commands);
 	Task heart_beat_task(2000, heart_beat);
 	// Task collect_samples_task(200, &robot_collect_encoder_samples);
-	// robot_start_encoder_sample_collection((uint64_t)100000);
+	// robot_start_encoder_sample_collection((uint64_t)10000);
 	while (1)
 	{
 		cli_task();

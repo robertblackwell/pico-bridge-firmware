@@ -67,7 +67,9 @@ void encoder_isr(uint pin, uint32_t event)
         ptr->m_isr_first_call_time = ptr->m_isr_sample_start_time_usecs;
         return;
     }
-    ptr->m_isr_sample_tick_count++;
+    // c++20 requirement
+    auto tmp = ptr->m_isr_sample_tick_count;
+    ptr->m_isr_sample_tick_count = tmp+1;
     ptr->m_isr_sample_time_of_most_recent_tick_usecs = to_us_since_boot(get_absolute_time());
 
     // auto y = ptr->m_isr_timestamp_musecs;
@@ -216,7 +218,7 @@ void unsafe_collect_two_encoder_samples(
     Encoder& right_encoder, EncoderSample& right_sample
     ) 
 {
-    printf("unsafe_collect_two_encoder_samples\n");
+    //printf("unsafe_collect_two_encoder_samples\n");
     //https://github.com/raspberrypi/pico-sdk/issues/1644
     // see this reference for bug in save_and_disable_interrupts
 
@@ -251,7 +253,7 @@ void unsafe_collect_two_encoder_samples(
  */
 void update_sample_from_isr(EncoderSample& sample)
 {
-    printf("encoder::update_sample_from_isr\n");
+    //printf("encoder::update_sample_from_isr\n");
     sample.s_contains_data = true;
     if(sample.s_isr_saved_sample_tick_count == 0) {
         sample.s_motor_rpm = 0.0;
@@ -263,7 +265,7 @@ void update_sample_from_isr(EncoderSample& sample)
         // sample.s_pin_state = pin_state(sample.s_apin_state, sample.s_bpin_state); 
         sample.s_elapsed_usecs = sample.s_isr_endtime_us - sample.s_isr_starttime_us;
         sample.s_musecs_per_interrupt  =	((float)sample.s_elapsed_usecs)/((float)sample.s_isr_saved_sample_tick_count);
-        sample.s_musecs_per_motor_revolution =	((float)sample.s_elapsed_usecs * (float)ISR_INTR_PER_MOTOR_REVOLUTION)/((float)sample.s_isr_saved_sample_tick_count);
+        sample.s_musecs_per_motor_revolution =	((float)sample.s_elapsed_usecs / ((float)sample.s_isr_saved_sample_tick_count)) * (float)ISR_INTR_PER_MOTOR_REVOLUTION;
         sample.s_motor_rpm = (ISR_SECS_IN_MINUTE * 1000000.0/ sample.s_musecs_per_motor_revolution);
         sample.s_wheel_rpm = sample.s_motor_rpm / ((float)ISR_GEAR_RATIO);
         sample.s_wheel_rps = sample.s_wheel_rpm / (ISR_SECS_IN_MINUTE);

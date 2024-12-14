@@ -25,52 +25,52 @@ DRI0002V1_4 dri0002{
 		MOTOR_LEFT_DIRECTION_SELECT_PIN	    // E2
 };
 
-/**
- * The following is a bit arcane
- * It chooses between two strategies for encoder ISRs. Each encoder needs 2 ISRs - one each for PINS A and B.
- * The code is the same for pin A and B. Infact the code is the same for all Encoder ISRs all that changes is
- * the encoder it self.
- *
- * there are currently 2 strategies for handling this:
- *
- * 1.   Encoders funnel all their interrupts through a common isr handler but must pass a pointer to their
- *      Encoder instance to that common isr. This is the least tricky way I can find of doing that
- *
- * 2.   Encoder ISR code is short enough to justify repeating it in ISR.
-*/
-#ifdef ISR_COMMON_FUNCTION
-#define ISR_GUTS(enc) \
-    encoder_common_isr(&enc);
-#else
-#define ISR_GUTS(enc) \
-    enc.m_isr_interrupt_count = encoder_left.m_isr_interrupt_count + 1; \
-    enc.m_isr_sample_most_recent_time_usecs = micros();
-#endif
-#if 0
-void isr_apin_left(uint pin, uint32_t event);
-void isr_bpin_left(uint pin, uint32_t event);
-Encoder encoder_left{MOTOR_LEFT_ID, MOTOR_LEFT_NAME, MOTOR_LEFT_ENCODER_A_INT, MOTOR_LEFT_ENCODER_B_INT, isr_apin_left, isr_bpin_left};
-void isr_apin_left(uint pin, uint32_t event) {
-    printf("left a pin:%d\n", pin);
-    ISR_GUTS(encoder_left)
-}
-void isr_bpin_left(uint pin, uint32_t event) {
-    printf("left b pin:%d\n", pin);
-    ISR_GUTS(encoder_left)
-}
+// /**
+//  * The following is a bit arcane
+//  * It chooses between two strategies for encoder ISRs. Each encoder needs 2 ISRs - one each for PINS A and B.
+//  * The code is the same for pin A and B. Infact the code is the same for all Encoder ISRs all that changes is
+//  * the encoder it self.
+//  *
+//  * there are currently 2 strategies for handling this:
+//  *
+//  * 1.   Encoders funnel all their interrupts through a common isr handler but must pass a pointer to their
+//  *      Encoder instance to that common isr. This is the least tricky way I can find of doing that
+//  *
+//  * 2.   Encoder ISR code is short enough to justify repeating it in ISR.
+// */
+// #ifdef ISR_COMMON_FUNCTION
+// #define ISR_GUTS(enc) \
+//     encoder_common_isr(&enc);
+// #else
+// #define ISR_GUTS(enc) \
+//     enc.m_isr_interrupt_count = encoder_left.m_isr_interrupt_count + 1; \
+//     enc.m_isr_sample_most_recent_time_usecs = micros();
+// #endif
+// #if 0
+// void isr_apin_left(uint pin, uint32_t event);
+// void isr_bpin_left(uint pin, uint32_t event);
+// Encoder encoder_left{MOTOR_LEFT_ID, MOTOR_LEFT_NAME, MOTOR_LEFT_ENCODER_A_INT, MOTOR_LEFT_ENCODER_B_INT, isr_apin_left, isr_bpin_left};
+// void isr_apin_left(uint pin, uint32_t event) {
+//     printf("left a pin:%d\n", pin);
+//     ISR_GUTS(encoder_left)
+// }
+// void isr_bpin_left(uint pin, uint32_t event) {
+//     printf("left b pin:%d\n", pin);
+//     ISR_GUTS(encoder_left)
+// }
 
-void isr_apin_right(uint pin, uint32_t event);
-void isr_bpin_right(uint pin, uint32_t event);
-Encoder encoder_right{MOTOR_RIGHT_ID, MOTOR_RIGHT_NAME, MOTOR_RIGHT_ENCODER_A_INT, MOTOR_RIGHT_ENCODER_B_INT, isr_apin_right, isr_bpin_right};
-void isr_apin_right(uint pin, uint32_t event) {
-    printf("right a pin:%d\n", pin);
-    ISR_GUTS(encoder_right)
-}
-void isr_bpin_right(uint pin, uint32_t event) {
-    printf("right a pin:%d\n", pin);
-    ISR_GUTS(encoder_right)
-}
-#endif
+// void isr_apin_right(uint pin, uint32_t event);
+// void isr_bpin_right(uint pin, uint32_t event);
+// Encoder encoder_right{MOTOR_RIGHT_ID, MOTOR_RIGHT_NAME, MOTOR_RIGHT_ENCODER_A_INT, MOTOR_RIGHT_ENCODER_B_INT, isr_apin_right, isr_bpin_right};
+// void isr_apin_right(uint pin, uint32_t event) {
+//     printf("right a pin:%d\n", pin);
+//     ISR_GUTS(encoder_right)
+// }
+// void isr_bpin_right(uint pin, uint32_t event) {
+//     printf("right a pin:%d\n", pin);
+//     ISR_GUTS(encoder_right)
+// }
+// #endif
 
 Encoder* encoder_left_ptr;
 Encoder* encoder_right_ptr;
@@ -111,8 +111,8 @@ void robot_stop_all()
 
 void tojson_encoder_samples(transport::buffer::Handle buffer_h)
 {
-    printf("robot::tojson_encoder_samples\n");
-    // unsafe_collect_two_encoder_samples(*encoder_left_ptr, (encoder_left_ptr->m_sample), *encoder_right_ptr, encoder_right_ptr->m_sample);
+    //printf("robot::tojson_encoder_samples\n");
+    unsafe_collect_two_encoder_samples(*encoder_left_ptr, (encoder_left_ptr->m_sample), *encoder_right_ptr, encoder_right_ptr->m_sample);
     // encoder_left_ptr->m_sample.dump();
     // encoder_right_ptr->m_sample.dump();
 
@@ -120,7 +120,7 @@ void tojson_encoder_samples(transport::buffer::Handle buffer_h)
 }
 bool timer_callback(repeating_timer_t* timer)
 {
-    printf("timer_callback\n");
+    //printf("timer_callback\n");
     unsafe_collect_two_encoder_samples(
         *encoder_left_ptr, 
         encoder_left_ptr->m_sample, 
@@ -131,7 +131,7 @@ bool timer_callback(repeating_timer_t* timer)
 }
 void robot_start_encoder_sample_collection(uint64_t sample_interval_us)
 {
-    printf("robot_start_encoder_sample_collection\n");
+    //printf("robot_start_encoder_sample_collection\n");
     static repeating_timer_t timer;
     add_repeating_timer_us(+sample_interval_us, &timer_callback, NULL, &timer);
     // start encoder interrupts here
