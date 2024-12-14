@@ -2,7 +2,7 @@
 #define H_robot_h
 #include "transport/buffers.h"
 #include "dri0002.h"
-#include "encoder.h"
+#include "encoder_v2.h"
 #include "motion.h"
 /**
  * These are the class instances that control the driving of our robot

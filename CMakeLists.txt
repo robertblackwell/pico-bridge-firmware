@@ -9,7 +9,7 @@ message("NOW")
 set(COMMON_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src/common)
 message("COMMON_SRC_DIR    ${COMMON_SRC_DIR}")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
+set(CMAKE_BUILD_TYPE Debug)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(pico_sdk_import.cmake)
 # optional
@@ -44,8 +44,8 @@ set(COMMON_SOURCE_FILES
     ${COMMON_SRC_DIR}/trace.h
     ${COMMON_SRC_DIR}/dri0002.h
     ${COMMON_SRC_DIR}/dri0002.cpp
-    ${COMMON_SRC_DIR}/encoder.h
-    ${COMMON_SRC_DIR}/encoder.cpp
+    ${COMMON_SRC_DIR}/encoder_v2.h
+    ${COMMON_SRC_DIR}/encoder_v2.cpp
     ${COMMON_SRC_DIR}/encoder_sample.h
     ${COMMON_SRC_DIR}/encoder_sample.cpp
     ${COMMON_SRC_DIR}/pico_gpio_irq_dispatcher.h
@@ -70,18 +70,24 @@ set(COMMON_SOURCE_FILES
 
 set(PICO_ROBOT_PATH ${PROJECT_SOURCE_DIR})
 
-add_subdirectory(apps/debug-blinky)
-add_subdirectory(apps/test01)
-add_subdirectory(apps/test_command)
-add_subdirectory(apps/test_uart)
-add_subdirectory(apps/test_serial_ports)
-add_subdirectory(apps/helloworld)
-# add_subdirectory(apps/test_cli)
-add_subdirectory(apps/test_irq)
-# add_subdirectory(apps/test_motor)
-# add_subdirectory(apps/test_motion)
+# add_subdirectory(apps/debug-blinky)
+# add_subdirectory(apps/test01)
+# add_subdirectory(apps/test_command)
+# add_subdirectory(apps/test_uart)
+# add_subdirectory(apps/test_serial_ports)
+# add_subdirectory(apps/helloworld)
+
+# # add_subdirectory(apps/test_cli)
+
+# add_subdirectory(apps/test_irq)
+
+# # add_subdirectory(apps/test_motor)
+# # add_subdirectory(apps/test_motion)
+
 add_subdirectory(apps/bridge)
-add_subdirectory(apps/closed_loop)
-add_subdirectory(apps/test_transport)
+# add_subdirectory(apps/bridge_with_samples)
+# add_subdirectory(apps/closed_loop)
+# add_subdirectory(apps/test_transport)
+
 # add_subdirectory(apps/onboard_pid)
 

@@ -6,7 +6,7 @@
 #include "motion.h"
 #include "task.h"
 #include "dri0002.h"
-#include "encoder.h"
+#include "encoder_v2.h"
 #include "pid.h"
 
 
@@ -160,14 +160,6 @@ void dump_config(MotionControl* mp)
 			mp->encoder_ptr(DriveSide::left)->m_encoder_a_pin,
             mp->encoder_ptr(DriveSide::right)->m_encoder_a_pin
 		);
-		printf("\tm_isr_a: %p \n\tm_isr_b: %p\n",
-			mp->encoder_ptr(DriveSide::left)->m_isr_a,
-			mp->encoder_ptr(DriveSide::right)->m_isr_b
-		);
-		// printf("\tirq_handler_left_a: %p \n\tirq_handler_left_b: %p\n",
-		// 	irq_handler_left_apin,
-		// 	irq_handler_left_bpin
-		// );
 	printf("Right Config \n");
 		printf("\tE pin %d \n\tM pin: %d \n", 
 			mp->m_dri0002_ptr->get_pwmpipico(DriveSide ::right)->m_pwm_pin,
@@ -175,12 +167,4 @@ void dump_config(MotionControl* mp)
 		printf("\tinterupt a: %d \n\tinterrupt b: %d\n",
 			mp->encoder_ptr(DriveSide::left)->m_encoder_a_pin,
 			mp->encoder_ptr(DriveSide::right)->m_encoder_b_pin);
-		printf("\tm_isr_a: %p \n\tm_isr_b: %p\n",
-			mp->encoder_ptr(DriveSide::left)->m_isr_a,
-			mp->encoder_ptr(DriveSide::right)->m_isr_b
-		);
-		// printf("\tirq_handler_right_a: %p \n\tirq_handler_right_b: %p\n",
-		// 	irq_handler_right_apin,
-		// 	irq_handler_right_bpin
-		// );
 }

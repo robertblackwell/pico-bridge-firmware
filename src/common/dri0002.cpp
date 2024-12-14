@@ -59,8 +59,8 @@ void PwmPiPico::begin(uint pwm_pin, uint direction_pin, uint wrap) {
 }
 void PwmPiPico::set_level(uint level)
 {
-	print_fmt("PicoPwm::set_level addr: %p pin: %u wrap:%u level:%u slice_num %u channel: %u direction: %d\n", 
-		this, m_pwm_pin, m_wrap, level, m_slice_num, m_channel, (int)m_direction);
+	// print_fmt("PicoPwm::set_level addr: %p pin: %u wrap:%u level:%u slice_num %u channel: %u direction: %d\n", 
+	// 	this, m_pwm_pin, m_wrap, level, m_slice_num, m_channel, (int)m_direction);
 	gpio_put(m_direction_pin, (m_direction == MotorDirection::forward)?1:0);
 	pwm_set_chan_level(m_slice_num, m_channel, level);
 	pwm_set_enabled(m_slice_num, true);

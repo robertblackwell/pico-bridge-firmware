@@ -13,8 +13,8 @@ add_executable(test_transport
     ${COMMON_SRC_DIR}/trace.h
     ${COMMON_SRC_DIR}/dri0002.h
     ${COMMON_SRC_DIR}/dri0002.cpp
-    ${COMMON_SRC_DIR}/encoder.h
-    ${COMMON_SRC_DIR}/encoder.cpp
+    ${COMMON_SRC_DIR}/encoder_v2.h
+    ${COMMON_SRC_DIR}/encoder_v2.cpp
     ${COMMON_SRC_DIR}/encoder_sample.h
     ${COMMON_SRC_DIR}/encoder_sample.cpp
     ${COMMON_SRC_DIR}/pico_gpio_irq_dispatcher.h

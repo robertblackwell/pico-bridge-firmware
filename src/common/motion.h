@@ -4,7 +4,7 @@
 #include <task.h>
 #include <cmath>
 #include <dri0002.h>
-#include <encoder.h>
+#include <encoder_v2.h>
 
 // using namespace closed_loop;
 

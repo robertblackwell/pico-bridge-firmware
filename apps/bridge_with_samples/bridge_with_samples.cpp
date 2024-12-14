@@ -47,6 +47,7 @@ static bool test_get_char_if_available(int* char_received) {
 
 // Cli cli;
 transport::Reader treader;
+void encoder_samples();
 int main()
 {
 	transport::transport_init();
@@ -57,22 +58,28 @@ int main()
 	trace_init();
 	sleep_ms(5000);
 //	print_fmt("bridge (version:%s ) starting ... \n", VERSION_NUMBER);
-    transport::send_boot_message("bridge (version:%s ) starting ... \n", VERSION_NUMBER);
+    transport::send_boot_message("bridge_with_samplesmake (version:%s ) starting ... \n", VERSION_NUMBER);
 	robot_init();
 	Task cli_task(20, do_commands);
-	Task heart_beat_task(2000, heart_beat);
-	// Task collect_samples_task(200, &robot_collect_encoder_samples);
-	// robot_start_encoder_sample_collection((uint64_t)100000);
+	Task heart_beat_task(1000, heart_beat);
+	Task collect_samples_task(3000, &encoder_samples);
+	robot_start_encoder_sample_collection((uint64_t)1000000);
 	while (1)
 	{
 		cli_task();
 		heart_beat_task();
-		// collect_samples_task();
+		collect_samples_task();
 	}
 }
 void heart_beat()
 {
 	printf("Heart beat \n");
+}
+void encoder_samples() 
+{
+	Handle h = tx_pool::allocate();
+	tojson_encoder_samples(h);
+	transport::send_json_response(&h);
 }
 void do_commands()
 {

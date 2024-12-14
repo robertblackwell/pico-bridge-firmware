@@ -12,6 +12,14 @@
 #include "encoder.h"
 #include "reporter.h"
 
+/**
+ * Fixes a possible bug - the sdk version does not have the memory keyword thus allowind optimization to reorder
+ */
+uint32_t local_save_and_disable_interrupts(){
+    uint32_t status;
+    __asm volatile(".syntax unified\n" "msr PRIMASK,%0"::"r" (status) : "memory" );
+    return status;
+}
 
 const char* pin_state(uint8_t apin_state, uint8_t bpin_state)
 {
@@ -150,6 +158,11 @@ void unsafe_collect_two_encoder_samples(
     Encoder& right_encoder, EncoderSample& right_sample
     ) 
 {
+    //https://github.com/raspberrypi/pico-sdk/issues/1644
+    // see this reference for bug in save_and_disable_interrupts
+
+    // interesting discussioin on making isrs faster
+    //https://forums.raspberrypi.com/viewtopic.php?t=369434
     uint32_t interrupt_status = save_and_disable_interrupts();
     #if 0
     uint64_t mleft = to_us_since_boot(get_absolute_time()); 

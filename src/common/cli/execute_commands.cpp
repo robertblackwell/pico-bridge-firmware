@@ -9,7 +9,7 @@
 #include "trace.h"
 #include "dri0002.h"
 #include "config.h"
-#include "encoder.h"
+#include "encoder_v2.h"
 #include "task.h"
 #include "motion.h"
 #include "reporter.h"

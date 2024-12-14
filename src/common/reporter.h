@@ -1,7 +1,7 @@
 #ifndef H_reporter_h
 #define H_reporter_h
 
-#include "encoder.h"
+#include "encoder_v2.h"
 #include <task.h>
 void report_sample(EncoderSample& sample);
 
