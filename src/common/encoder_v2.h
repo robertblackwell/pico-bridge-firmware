@@ -44,6 +44,7 @@ struct Encoder
     /**
      * properties used by the isr
     */
+    volatile uint64_t   m_isr_first_call_time;
     // time since boot in usecs when this sample was initialized
     volatile uint64_t   m_isr_sample_start_time_usecs;
     // time in usecs since boot of the latest tick in this sample

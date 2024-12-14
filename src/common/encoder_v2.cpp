@@ -63,7 +63,8 @@ void encoder_isr(uint pin, uint32_t event)
         ptr->m_isr_first_time_called_flag = false;
         ptr->m_isr_sample_tick_count = 0;
         ptr->m_isr_lifetime_tick_count = 0;
-        ptr->m_isr_sample_time_of_first_tick_usecs = to_us_since_boot(get_absolute_time());
+        ptr->m_isr_sample_start_time_usecs = to_us_since_boot(get_absolute_time());
+        ptr->m_isr_first_call_time = ptr->m_isr_sample_start_time_usecs;
         return;
     }
     ptr->m_isr_sample_tick_count++;
