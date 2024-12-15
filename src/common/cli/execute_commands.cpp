@@ -86,6 +86,20 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
             }
             break;
         }
+        case CommandName::EncodersStream:
+        {
+            int interval_ms = 0;
+            if(validate_encoders_stream(args, interval_ms)) {
+                printf("%s interval_ms: %d\n", to_string(enumname), interval_ms);
+                // Handle h = tx_pool::allocate();
+                // tojson_encoder_samples(h);
+                // transport::send_json_response(&h);
+                // printf("End of read encoder cmd \n");
+            } else {
+                transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
+            }
+            break;
+        }
         case CommandName::PidArgsUpdate: {
             transport::send_command_ok("PidArgUpdate command not implemented [%s]", sb_buffer_as_cstr(bh));
             break;

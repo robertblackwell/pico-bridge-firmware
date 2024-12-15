@@ -36,7 +36,7 @@ set(COMMON_SOURCE_FILES
     ${COMMON_SRC_DIR}/cli/argv.h
     ${COMMON_SRC_DIR}/cli/commands.h
     ${COMMON_SRC_DIR}/cli/commands.cpp
-    ${COMMON_SRC_DIR}/cli/execute_commands.cpp
+#    ${COMMON_SRC_DIR}/cli/execute_commands.cpp
 
     ${COMMON_SRC_DIR}/enum.cpp
     ${COMMON_SRC_DIR}/enum.h
@@ -52,6 +52,8 @@ set(COMMON_SOURCE_FILES
     ${COMMON_SRC_DIR}/pico_gpio_irq_dispatcher.cpp
     ${COMMON_SRC_DIR}/motion.h
     ${COMMON_SRC_DIR}/motion.cpp
+    ${COMMON_SRC_DIR}/reporter.cpp
+    ${COMMON_SRC_DIR}/reporter.h
     ${COMMON_SRC_DIR}/robot.h
     ${COMMON_SRC_DIR}/robot.cpp
     ${COMMON_SRC_DIR}/task.h
@@ -84,8 +86,8 @@ set(PICO_ROBOT_PATH ${PROJECT_SOURCE_DIR})
 # # add_subdirectory(apps/test_motor)
 # # add_subdirectory(apps/test_motion)
 
-add_subdirectory(apps/bridge)
-# add_subdirectory(apps/bridge_with_samples)
+#add_subdirectory(apps/bridge)
+add_subdirectory(apps/bridge_with_samples)
 # add_subdirectory(apps/closed_loop)
 # add_subdirectory(apps/test_transport)
 

@@ -176,6 +176,12 @@ bool validate_encoder_read(Argv& args)
     bool valid = (args.token_count >= 1);
     return valid;  
 }
+bool validate_encoders_stream(Argv& args, int& interval_ms )
+{
+    bool valid = (args.token_count == 2)
+            && argparse_posint(args, 1, interval_ms);
+    return valid;  
+}
 bool validate_loadtest(Argv& args, int& count, int& length, int& num_per_second)
 {
     bool valid = (args.token_count == 4)
@@ -192,21 +198,22 @@ CommandName command_lookup(const char* first_arg) {
         CommandName cmd;
     };
     static TableEntry table[] = {
-        {"c", "echo",    CLI_COMMAND_TAG_ECHO,          CommandName::Echo},
-        {"s", "stop",    CLI_COMMAND_TAG_STOP,          CommandName::MotorsHalt},
-        {"w", "pwm",     CLI_COMMAND_MOTOR_PERCENT_PWM, CommandName::MotorsPwmPercent},
+        {"c",  "echo",    CLI_COMMAND_TAG_ECHO,          CommandName::Echo},
+        {"s",  "stop",    CLI_COMMAND_TAG_STOP,          CommandName::MotorsHalt},
+        {"w",  "pwm",     CLI_COMMAND_MOTOR_PERCENT_PWM, CommandName::MotorsPwmPercent},
 
-        {"m", "motor",   CLI_COMMAND_MOTOR_SPEED,       CommandName::MotorsRpm}, // rpw
-        {"r", "rpm",     CLI_COMMAND_MOTOR_RPM,         CommandName::MotorsRpm},
+        {"m",  "motor",   CLI_COMMAND_MOTOR_SPEED,       CommandName::MotorsRpm}, // rpw
+        {"r",  "rpm",     CLI_COMMAND_MOTOR_RPM,         CommandName::MotorsRpm},
 
-        {"t", "stop",    CLI_COMMAND_TAG_STOP,          CommandName::MotorsHalt},
+        {"t",  "stop",    CLI_COMMAND_TAG_STOP,          CommandName::MotorsHalt},
 
-        {"u", "upid",    CLI_COMMAND_UPDATE_PIDARGS,    CommandName::PidArgsUpdate},
-        {"e", "encoder", CLI_COMMAND_READ_ENCODERS,     CommandName::EncodersRead},
-        {"l", "load",    CLI_COMMAND_TAG_LOADTEST,      CommandName::LoadTest},
-        {"?", "help",    CLI_COMMAND_TAG_LOADTEST,      CommandName::Help},
-        {"b", "reset",   CLI_COMMAND_TAG_NONE,          CommandName::SoftwareReset},
-        {"x", "raw",     CLI_COMMAND_TAG_NONE,          CommandName::None},
+        {"u",  "upid",    CLI_COMMAND_UPDATE_PIDARGS,    CommandName::PidArgsUpdate},
+        {"e",  "encoder", CLI_COMMAND_READ_ENCODERS,     CommandName::EncodersRead},
+        {"es", "encoder", CLI_COMMAND_READ_ENCODERS,     CommandName::EncodersStream},
+        {"l",  "load",    CLI_COMMAND_TAG_LOADTEST,      CommandName::LoadTest},
+        {"?",  "help",    CLI_COMMAND_TAG_LOADTEST,      CommandName::Help},
+        {"b",  "reset",   CLI_COMMAND_TAG_NONE,          CommandName::SoftwareReset},
+        {"x",  "raw",     CLI_COMMAND_TAG_NONE,          CommandName::None},
 
         NULL
     };

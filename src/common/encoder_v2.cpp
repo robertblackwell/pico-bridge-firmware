@@ -14,17 +14,17 @@
 
 Encoder encoder_left{MOTOR_LEFT_ID, MOTOR_LEFT_NAME, MOTOR_LEFT_ENCODER_A_INT, MOTOR_LEFT_ENCODER_B_INT};
 Encoder encoder_right{MOTOR_RIGHT_ID, MOTOR_RIGHT_NAME, MOTOR_RIGHT_ENCODER_A_INT, MOTOR_RIGHT_ENCODER_B_INT};
-void encoders_start()
+void Encoder::encoders_start()
 {
     encoder_left.start_interrupts();
     encoder_right.start_interrupts();
 }
-Encoder* encoder_left_start()
+Encoder* Encoder::encoder_left_start()
 {
     encoder_left.start_interrupts();
     return &encoder_left;
 }
-Encoder* encoder_right_start()
+Encoder* Encoder::encoder_right_start()
 {
     encoder_right.start_interrupts();
     return &encoder_right;
@@ -213,7 +213,7 @@ void update_sample_from_isr(EncoderSample& sample);
  *
  * Important not to miss a tick as that will corrupt the odometry calculations
 */
-void unsafe_collect_two_encoder_samples(
+void Encoder::unsafe_collect_two_encoder_samples(
     Encoder& left_encoder, EncoderSample& left_sample,
     Encoder& right_encoder, EncoderSample& right_sample
     ) 

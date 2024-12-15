@@ -36,6 +36,7 @@ enum class CommandName
     MotorsHalt = 'h',
     PidArgsUpdate = 'u',
     EncodersRead = 'e',
+    EncodersStream = 't',
     Echo = 'c',
     LoadTest = 'l',
     Help = '?',
@@ -69,6 +70,9 @@ inline const char* to_string(CommandName en)
         case CommandName::EncodersRead:
             s =  "EncodersRead";
             break;
+        case CommandName::EncodersStream:
+            s =  "EncodersStream";
+            break;
         case CommandName::LoadTest:
             s = "Loadtest";
             break;
@@ -87,6 +91,7 @@ bool validate_rpm(Argv& args, double& left, double& right);
 bool validate_stop(Argv& args);
 bool validate_echo(Argv& args);
 bool validate_encoder_read(Argv& args);
+bool validate_encoders_stream(Argv& args, int& interval_ms);
 bool validate_loadtest(Argv& args, int& count, int& length, int& num_per_second);
 bool validate_help(Argv& args);
 

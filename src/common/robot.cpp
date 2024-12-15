@@ -1,7 +1,7 @@
 
 #undef FTRACE_ON
 #include "robot.h"
-#include <stdio.h>
+#include <cstdio>
 #include <pico/platform.h>
 #include <hardware/gpio.h>
 #include <hardware/pwm.h>
@@ -15,82 +15,16 @@
 #include "motion.h"
 #include "transport/buffers.h"
 
-DRI0002V1_4 dri0002{
-		MOTOR_RIGHT_DRI0002_SIDE, 
-		MOTOR_RIGHT_PWM_PIN, 				// E1
-		MOTOR_RIGHT_DIRECTION_SELECT_PIN, 	// M1
-		
-		MOTOR_LEFT_DRI0002_SIDE, 
-		MOTOR_LEFT_PWM_PIN, 				// E2
-		MOTOR_LEFT_DIRECTION_SELECT_PIN	    // E2
-};
 
-// /**
-//  * The following is a bit arcane
-//  * It chooses between two strategies for encoder ISRs. Each encoder needs 2 ISRs - one each for PINS A and B.
-//  * The code is the same for pin A and B. Infact the code is the same for all Encoder ISRs all that changes is
-//  * the encoder it self.
-//  *
-//  * there are currently 2 strategies for handling this:
-//  *
-//  * 1.   Encoders funnel all their interrupts through a common isr handler but must pass a pointer to their
-//  *      Encoder instance to that common isr. This is the least tricky way I can find of doing that
-//  *
-//  * 2.   Encoder ISR code is short enough to justify repeating it in ISR.
-// */
-// #ifdef ISR_COMMON_FUNCTION
-// #define ISR_GUTS(enc) \
-//     encoder_common_isr(&enc);
-// #else
-// #define ISR_GUTS(enc) \
-//     enc.m_isr_interrupt_count = encoder_left.m_isr_interrupt_count + 1; \
-//     enc.m_isr_sample_most_recent_time_usecs = micros();
-// #endif
-// #if 0
-// void isr_apin_left(uint pin, uint32_t event);
-// void isr_bpin_left(uint pin, uint32_t event);
-// Encoder encoder_left{MOTOR_LEFT_ID, MOTOR_LEFT_NAME, MOTOR_LEFT_ENCODER_A_INT, MOTOR_LEFT_ENCODER_B_INT, isr_apin_left, isr_bpin_left};
-// void isr_apin_left(uint pin, uint32_t event) {
-//     printf("left a pin:%d\n", pin);
-//     ISR_GUTS(encoder_left)
-// }
-// void isr_bpin_left(uint pin, uint32_t event) {
-//     printf("left b pin:%d\n", pin);
-//     ISR_GUTS(encoder_left)
-// }
-
-// void isr_apin_right(uint pin, uint32_t event);
-// void isr_bpin_right(uint pin, uint32_t event);
-// Encoder encoder_right{MOTOR_RIGHT_ID, MOTOR_RIGHT_NAME, MOTOR_RIGHT_ENCODER_A_INT, MOTOR_RIGHT_ENCODER_B_INT, isr_apin_right, isr_bpin_right};
-// void isr_apin_right(uint pin, uint32_t event) {
-//     printf("right a pin:%d\n", pin);
-//     ISR_GUTS(encoder_right)
-// }
-// void isr_bpin_right(uint pin, uint32_t event) {
-//     printf("right a pin:%d\n", pin);
-//     ISR_GUTS(encoder_right)
-// }
-// #endif
-
-Encoder* encoder_left_ptr;
-Encoder* encoder_right_ptr;
-MotionControl motion_controller{&dri0002, encoder_left_ptr, encoder_right_ptr};
-
-void robot_init()
-{
-	encoder_left_ptr = encoder_left_start();
-	encoder_right_ptr = encoder_right_start();
-}
-
-void robot_set_raw_pwm_percent(double left_pwm_percent, double right_pwm_percent)
+void robot_set_raw_pwm_percent(MotionControl& motion_controller, double left_pwm_percent, double right_pwm_percent)
 {
     motion_controller.set_raw_pwm_percent(left_pwm_percent, right_pwm_percent);
 }
-void robot_set_pwm_percent(double left_pwm_percent, double right_pwm_percent)
+void robot_set_pwm_percent(MotionControl& motion_controller, double left_pwm_percent, double right_pwm_percent)
 {
     motion_controller.set_pwm_percent(left_pwm_percent, right_pwm_percent);
 }
-bool robot_set_rpm(double left_rpm, double right_rpm)
+bool robot_set_rpm(MotionControl& motion_controller, double left_rpm, double right_rpm)
 {
     if(!motion_controller.verify_left_rpm_settable((float)left_rpm)) {
 //        robot_error_msg = "left rpm value invalid probably trying to change direction without stopping";
@@ -103,25 +37,28 @@ bool robot_set_rpm(double left_rpm, double right_rpm)
     motion_controller.pid_set_rpm(left_rpm, right_rpm);
     return true;
 }
-void robot_stop_all()
+void robot_stop_all(MotionControl& motion_controller)
 {
     motion_controller.stop_all();
 }
 
 
-void tojson_encoder_samples(transport::buffer::Handle buffer_h)
+void tojson_encoder_samples(MotionControl& mc, transport::buffer::Handle buffer_h)
 {
+    Encoder* encoder_left_ptr = mc.m_left_encoder_ptr;
+    Encoder* encoder_right_ptr = mc.m_right_encoder_ptr;
     //printf("robot::tojson_encoder_samples\n");
-    unsafe_collect_two_encoder_samples(*encoder_left_ptr, (encoder_left_ptr->m_sample), *encoder_right_ptr, encoder_right_ptr->m_sample);
+    Encoder::unsafe_collect_two_encoder_samples(*encoder_left_ptr, (encoder_left_ptr->m_sample), *encoder_right_ptr, encoder_right_ptr->m_sample);
     // encoder_left_ptr->m_sample.dump();
     // encoder_right_ptr->m_sample.dump();
 
     tojson_two_encoder_samples(buffer_h, &encoder_left_ptr->m_sample, &encoder_right_ptr->m_sample);
 }
+#if 0
 bool timer_callback(repeating_timer_t* timer)
 {
     //printf("timer_callback\n");
-    unsafe_collect_two_encoder_samples(
+    Encoder::unsafe_collect_two_encoder_samples(
         *encoder_left_ptr, 
         encoder_left_ptr->m_sample, 
         *encoder_right_ptr,
@@ -139,6 +76,7 @@ void robot_start_encoder_sample_collection(uint64_t sample_interval_us)
 void robot_collect_encoder_samples()
 {
 	FTRACE("robot::collect_encoder_samples\n", "");
-    unsafe_collect_two_encoder_samples(*encoder_left_ptr, encoder_left_ptr->m_sample, *encoder_right_ptr,
+    Encoder::unsafe_collect_two_encoder_samples(*encoder_left_ptr, encoder_left_ptr->m_sample, *encoder_right_ptr,
                                        encoder_right_ptr->m_sample);
 }
+#endif

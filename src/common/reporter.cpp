@@ -1,12 +1,21 @@
-#include <stdio.h>
-#include <transport.h>
-#include "trace.h"
 #include "reporter.h"
-
+#include <stdio.h>
+#include "transport/buffers.h"
+#include "transport/transmit_buffer_pool.h"
+#include "transport/transport.h"
+#include "trace.h"
+#include <robot.h>
 int sprintf_sample(char* buffer, EncoderSample* sample_ptr);
 void report_both_samples(EncoderSample* left_sample_ptr, EncoderSample* right_sample_ptr);
 
 Reporter::Reporter(){}
+Reporter::Reporter(MotionControl& mc)
+{
+    m_encoder_left_ptr = mc.m_left_encoder_ptr;
+    m_encoder_right_ptr = mc.m_right_encoder_ptr;
+    m_number_required = 0;
+    m_count = 0;
+}
 Reporter::Reporter(Encoder* encoder_left_ptr, Encoder* encoder_right_ptr)
 {
 	begin(encoder_left_ptr, encoder_right_ptr);
@@ -25,24 +34,22 @@ void Reporter::begin(Encoder* left, Encoder* right)
 }
 void Reporter::run()
 {
-	if((m_count < m_number_required) || (m_number_required < 0)) {
+
+	uint64_t now = to_ms_since_boot(get_absolute_time());
+	if(
+
+		(now >= m_interval_ms + m_last_report_time_since_boot_ms) && 
+		(
+			(m_count == 0) ||
+			(m_count > 0) && ((m_count < m_number_required) || (m_number_required < 0))
+		)
+	) {
 		FTRACE("reporter::run m_number_required: %d m_count: %d\n", m_number_required, m_count);
-		bool got_some = false;
-		EncoderSample left_sample;
-		EncoderSample right_sample;
-		m_encoder_left_ptr->run();
-		m_encoder_right_ptr->run();
-		if(m_encoder_left_ptr->available()) {
-			FTRACE("Reporter.run - got a left sample\n"," ")
-			m_encoder_left_ptr->consume(left_sample);
-			got_some = true;
-		}
-		if(m_encoder_right_ptr->available()) {
-			FTRACE("Reporter.run - got a right sample\n", " ")
-			m_encoder_right_ptr->consume(right_sample);
-			got_some = true;
-		}
-		report_both_samples(&left_sample, &right_sample);
+		m_last_report_time_since_boot_ms = now;
+        transport::buffer::Handle buffer_h = transport::buffer::tx_pool::allocate();
+        Encoder::unsafe_collect_two_encoder_samples(*m_encoder_left_ptr, (m_encoder_left_ptr->m_sample), *m_encoder_right_ptr, m_encoder_right_ptr->m_sample);
+        tojson_two_encoder_samples(buffer_h, &m_encoder_left_ptr->m_sample, &m_encoder_right_ptr->m_sample);
+        transport::send_json_response(&buffer_h);
 		m_count++;
 		}
 }
@@ -67,6 +74,7 @@ void report_both_samples(EncoderSample* left_sample_ptr, EncoderSample* right_sa
 	printf("buffer length : %d\n", strlen(buffer));
 	// transport_send(buffer, len);
 }
+#if 0
 int sprintf_sample(char* buffer, EncoderSample* sample_ptr)
 {
 	int len;
@@ -101,12 +109,20 @@ int sprintf_sample(char* buffer, EncoderSample* sample_ptr)
 	// elapsed = millis() - bms;
 	// Serial.print("Elapsed time for this report ");Serial.println(elapsed);
 }
+#endif
 /**
  * Requests the reporter object to produce 'number' consecutive
  * sample reports
 */
-void Reporter::request(int number)
+void Reporter::request(uint interval_ms, uint number)
 {
+    m_interval_ms = interval_ms;
 	m_number_required = number;
 	m_count = 0;
+}
+void Reporter::request(uint interval_ms)
+{
+    m_interval_ms = interval_ms;
+    m_number_required = 0;
+    m_count = 0;
 }

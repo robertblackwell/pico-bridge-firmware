@@ -20,11 +20,13 @@ struct Task {
     long m_previous_time_ms;
     Taskable* m_taskable;
     void(*m_callable)();
+    bool m_active;
 
     Task(long interval_ms, Taskable* taskable):m_taskable(taskable) {
         m_interval_ms = interval_ms;
         m_previous_time_ms = millis();
         m_callable = nullptr;
+        m_active = false;
     }
     Task(long interval_ms, void(*callable)())
     {
@@ -35,6 +37,9 @@ struct Task {
     }
     void run()
     {
+        if(!m_active) {
+            return;
+        }
         if(m_interval_ms > 0) {
             long ct = millis();
             if((ct - m_previous_time_ms) < m_interval_ms) {
@@ -48,6 +53,18 @@ struct Task {
         } else if(m_callable != nullptr) {
             m_callable();
         }
+    }
+    void start()
+    {
+        m_active = true;
+    }
+    void suspend()
+    {
+        m_active = false;
+    }
+    void update_interval(long interval_ms)
+    {
+        m_interval_ms = interval_ms;
     }
     void operator()()
     {

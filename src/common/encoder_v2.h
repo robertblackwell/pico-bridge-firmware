@@ -8,20 +8,21 @@ const char* pin_state(uint8_t apin_state, uint8_t bpin_state);
 class Encoder;
 void encoder_common_isr(Encoder* encoder_ptr);
 
-void encoders_start();
-Encoder* encoder_left_start();
-Encoder* encoder_right_start();
-/**
- * WARNING - This function turns off interrupts
-*/
-void unsafe_collect_two_encoder_samples(
-    Encoder& left_encoder, EncoderSample& left_sample,
-    Encoder& right_encoder, EncoderSample& right_sample
-    );
-
 struct Encoder
 {
     public:
+    
+    static void encoders_start();
+    static Encoder* encoder_left_start();
+    static Encoder* encoder_right_start();
+
+    /**
+    * WARNING - This function turns off interrupts
+    */
+    static void unsafe_collect_two_encoder_samples(
+        Encoder& left_encoder, EncoderSample& left_sample,
+        Encoder& right_encoder, EncoderSample& right_sample
+        );
 
     Encoder();
 
