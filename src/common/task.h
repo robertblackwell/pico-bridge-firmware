@@ -18,6 +18,7 @@ class Taskable {
 struct Task {
     long m_interval_ms;
     long m_previous_time_ms;
+    bool m_active;
     Taskable* m_taskable;
     void(*m_callable)();
 
@@ -25,6 +26,7 @@ struct Task {
         m_interval_ms = interval_ms;
         m_previous_time_ms = millis();
         m_callable = nullptr;
+        m_active = true;
     }
     Task(long interval_ms, void(*callable)())
     {
@@ -32,9 +34,12 @@ struct Task {
         m_previous_time_ms = millis();
         m_callable = callable;
         m_taskable = nullptr;
+        m_active = true;
     }
     void run()
-    {
+    {   if(!m_active) {
+            return;
+        }
         if(m_interval_ms > 0) {
             long ct = millis();
             if((ct - m_previous_time_ms) < m_interval_ms) {
@@ -52,6 +57,14 @@ struct Task {
     void operator()()
     {
         run();
+    }
+    void start()
+    {
+        m_active = true;
+    }
+    void suspend()
+    {
+        m_active = false;
     }
 };
 

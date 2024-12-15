@@ -30,6 +30,10 @@ inline Encoder* get_encoder(DriveSide side)
     if(side ==DriveSide::left) return encoder_left_ptr;
     return encoder_right_ptr;
 }
+inline MotionControl* get_motion_controller_ptr()
+{
+    return &motion_controller;
+}
 inline MotionControl::RpmValue get_current_rpm(DriveSide side)
 {
     if(side == DriveSide::left) return motion_controller.m_left_rpm_target;

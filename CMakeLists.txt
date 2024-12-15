@@ -85,7 +85,7 @@ set(PICO_ROBOT_PATH ${PROJECT_SOURCE_DIR})
 # # add_subdirectory(apps/test_motion)
 
 add_subdirectory(apps/bridge)
-# add_subdirectory(apps/bridge_with_samples)
+add_subdirectory(apps/bridge_with_samples)
 # add_subdirectory(apps/closed_loop)
 # add_subdirectory(apps/test_transport)
 
