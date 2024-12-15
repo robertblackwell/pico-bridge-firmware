@@ -17,7 +17,9 @@ void MotionControl::set_rpm_one_side(DriveSide side, RpmValue new_request)
      */
 
 	RpmValue trpm = get_rpm_target(side);
-    printf("set_rpm_one_side trpm.signed_value(): %f  new_request: %f\n", trpm.signed_value(), new_request.signed_value());
+    auto x = (int)new_request.is_zero();
+    auto y = (int)trpm.is_zero();
+    printf("set_rpm_one_side trpm.signed_value(): %f  new_request: %f x:%d y:%d\n", trpm.signed_value(), new_request.signed_value(), x ,y);
 	if((! new_request.is_zero()) && (! trpm.is_zero())) {
         if (new_request.direction() != trpm.direction()) {
             FATAL_ERROR_MSG("changing direction when target is not zero and wheel is in motion- for the moment fatal error")
@@ -51,7 +53,7 @@ void MotionControl::set_rpm_one_side(DriveSide side, RpmValue new_request)
 		m_dri0002_ptr->set_direction_pin_state(side, new_request.direction());
         printf("set_rpm_one_side send new target: %f to closed_loop\n", new_request.signed_value());
 	} else {
-        FATAL_ERROR_MSG("should not get herer")
+        FATAL_ERROR_MSG("should not get herer trpm.signed_value: %f new_request: ")
 	}
 }
 
