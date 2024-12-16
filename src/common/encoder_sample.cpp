@@ -1,7 +1,7 @@
 #include "encoder_sample.h"
 #include "trace.h"
 
-void tojson_two_encoder_samples(transport::buffer::Handle buffer_h, EncoderSample* left_sample_ptr, EncoderSample* right_sample_ptr)
+void EncoderSample::tojson_two_encoder_samples(transport::buffer::Handle buffer_h, EncoderSample* left_sample_ptr, EncoderSample* right_sample_ptr)
 {
 	transport::buffer::sb_sprintf(buffer_h, "[");
 	tojson_one_encoder_sample(buffer_h, left_sample_ptr);
@@ -12,7 +12,7 @@ void tojson_two_encoder_samples(transport::buffer::Handle buffer_h, EncoderSampl
 	// print_fmt("Leaving tojson_two 6. %s\n", transport::buffer::sb_buffer_as_cstr(buffer_h));
 
 }
-void tojson_one_encoder_sample(transport::buffer::Handle buffer_h, EncoderSample* sample_ptr)
+void EncoderSample::tojson_one_encoder_sample(transport::buffer::Handle buffer_h, EncoderSample* sample_ptr)
 {
     // printf("tojson_one_encoder_sample\n");
 	size_t len;

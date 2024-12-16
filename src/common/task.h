@@ -58,6 +58,10 @@ struct Task {
     {
         run();
     }
+    void update_interval(int interval_ms )
+    {
+        m_interval_ms = interval_ms;
+    }
     void start()
     {
         m_active = true;

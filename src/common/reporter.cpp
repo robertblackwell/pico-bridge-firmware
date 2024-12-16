@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <transport.h>
+#include <transmit_buffer_pool.h>
+
 #include "trace.h"
 #include "reporter.h"
 
@@ -25,27 +27,17 @@ void Reporter::begin(Encoder* left, Encoder* right)
 }
 void Reporter::run()
 {
-	if((m_count < m_number_required) || (m_number_required < 0)) {
+	if((m_number_required == 0) || (m_count < m_number_required) || (m_number_required < 0)) {
 		FTRACE("reporter::run m_number_required: %d m_count: %d\n", m_number_required, m_count);
-		bool got_some = false;
-		EncoderSample left_sample;
-		EncoderSample right_sample;
-		m_encoder_left_ptr->run();
-		m_encoder_right_ptr->run();
-		if(m_encoder_left_ptr->available()) {
-			FTRACE("Reporter.run - got a left sample\n"," ")
-			m_encoder_left_ptr->consume(left_sample);
-			got_some = true;
-		}
-		if(m_encoder_right_ptr->available()) {
-			FTRACE("Reporter.run - got a right sample\n", " ")
-			m_encoder_right_ptr->consume(right_sample);
-			got_some = true;
-		}
-		report_both_samples(&left_sample, &right_sample);
+		transport::buffer::Handle buffer_h = transport::buffer::tx_pool::allocate();
+	    Encoder::unsafe_collect_two_encoder_samples(*m_encoder_left_ptr, (m_encoder_left_ptr->m_sample), *m_encoder_right_ptr, m_encoder_right_ptr->m_sample);
+		EncoderSample::tojson_two_encoder_samples(buffer_h, &(m_encoder_left_ptr->m_sample), &(m_encoder_right_ptr->m_sample));
+		transport::send_json_response(&buffer_h);
+
 		m_count++;
 		}
 }
+#if 0
 void report_both_samples(EncoderSample* left_sample_ptr, EncoderSample* right_sample_ptr)
 {
 	char buffer[512];
@@ -101,6 +93,7 @@ int sprintf_sample(char* buffer, EncoderSample* sample_ptr)
 	// elapsed = millis() - bms;
 	// Serial.print("Elapsed time for this report ");Serial.println(elapsed);
 }
+#endif
 /**
  * Requests the reporter object to produce 'number' consecutive
  * sample reports

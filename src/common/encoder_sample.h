@@ -30,6 +30,11 @@ struct EncoderSample
     double      s_wheel_rpm;
     double      s_wheel_rps;
     double      s_speed_mm_per_second;
+
+    static void tojson_one_encoder_sample(transport::buffer::Handle buffer_h, EncoderSample* sample);
+    static void tojson_two_encoder_samples(transport::buffer::Handle buffer_h, EncoderSample* left_sample, EncoderSample* right_sample);
+
+
     EncoderSample() 
     {
         s_isr_starttime_us = 0;
@@ -74,8 +79,6 @@ struct EncoderSample
         print_fmt("   s_speed_mm_per_second        : %f", s_speed_mm_per_second);
     }
 };
-void tojson_one_encoder_sample(transport::buffer::Handle buffer_h, EncoderSample* sample);
-void tojson_two_encoder_samples(transport::buffer::Handle buffer_h, EncoderSample* left_sample, EncoderSample* right_sample);
 
 
 #endif

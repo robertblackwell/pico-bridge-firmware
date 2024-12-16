@@ -112,16 +112,16 @@ void robot_stop_all()
 void tojson_encoder_samples(transport::buffer::Handle buffer_h)
 {
     //printf("robot::tojson_encoder_samples\n");
-    unsafe_collect_two_encoder_samples(*encoder_left_ptr, (encoder_left_ptr->m_sample), *encoder_right_ptr, encoder_right_ptr->m_sample);
+    Encoder::unsafe_collect_two_encoder_samples(*encoder_left_ptr, (encoder_left_ptr->m_sample), *encoder_right_ptr, encoder_right_ptr->m_sample);
     // encoder_left_ptr->m_sample.dump();
     // encoder_right_ptr->m_sample.dump();
 
-    tojson_two_encoder_samples(buffer_h, &encoder_left_ptr->m_sample, &encoder_right_ptr->m_sample);
+    EncoderSample::tojson_two_encoder_samples(buffer_h, &encoder_left_ptr->m_sample, &encoder_right_ptr->m_sample);
 }
 bool timer_callback(repeating_timer_t* timer)
 {
     //printf("timer_callback\n");
-    unsafe_collect_two_encoder_samples(
+    Encoder::unsafe_collect_two_encoder_samples(
         *encoder_left_ptr, 
         encoder_left_ptr->m_sample, 
         *encoder_right_ptr,
@@ -139,6 +139,6 @@ void robot_start_encoder_sample_collection(uint64_t sample_interval_us)
 void robot_collect_encoder_samples()
 {
 	FTRACE("robot::collect_encoder_samples\n", "");
-    unsafe_collect_two_encoder_samples(*encoder_left_ptr, encoder_left_ptr->m_sample, *encoder_right_ptr,
+    Encoder::unsafe_collect_two_encoder_samples(*encoder_left_ptr, encoder_left_ptr->m_sample, *encoder_right_ptr,
                                        encoder_right_ptr->m_sample);
 }

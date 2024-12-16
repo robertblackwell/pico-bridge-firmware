@@ -11,17 +11,20 @@ void encoder_common_isr(Encoder* encoder_ptr);
 void encoders_start();
 Encoder* encoder_left_start();
 Encoder* encoder_right_start();
-/**
- * WARNING - This function turns off interrupts
-*/
-void unsafe_collect_two_encoder_samples(
-    Encoder& left_encoder, EncoderSample& left_sample,
-    Encoder& right_encoder, EncoderSample& right_sample
-    );
 
 struct Encoder
 {
     public:
+    /**
+     * WARNING - This function turns off interrupts
+    */
+    static void unsafe_collect_two_encoder_samples(
+        Encoder& left_encoder, EncoderSample& left_sample,
+        Encoder& right_encoder, EncoderSample& right_sample
+        );
+
+    static void update_sample_from_isr(EncoderSample& sample);
+
 
     Encoder();
 

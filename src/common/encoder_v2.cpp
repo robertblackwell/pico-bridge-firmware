@@ -204,7 +204,6 @@ void Encoder::run()
     m_sample.s_speed_mm_per_second = (m_sample.s_wheel_rpm * ISR_SECS_IN_MINUTE * (ISR_PI_VALUE)) / ISR_WHEEL_DIAMETER_MM;
 }
 #endif
-void update_sample_from_isr(EncoderSample& sample);
 
 /**
  * WARNING - This function turns off interrupts
@@ -213,7 +212,7 @@ void update_sample_from_isr(EncoderSample& sample);
  *
  * Important not to miss a tick as that will corrupt the odometry calculations
 */
-void unsafe_collect_two_encoder_samples(
+void Encoder::unsafe_collect_two_encoder_samples(
     Encoder& left_encoder, EncoderSample& left_sample,
     Encoder& right_encoder, EncoderSample& right_sample
     ) 
@@ -251,7 +250,7 @@ void unsafe_collect_two_encoder_samples(
  * and perform the calcs necessary to get motor rpm, wheel rpm and wheel speed.
  * @param sample
  */
-void update_sample_from_isr(EncoderSample& sample)
+void Encoder::update_sample_from_isr(EncoderSample& sample)
 {
     //printf("encoder::update_sample_from_isr\n");
     sample.s_contains_data = true;

@@ -11,6 +11,7 @@ target_include_directories(bridge_with_samples PRIVATE
 target_compile_definitions(bridge_with_samples 
     PUBLIC 
     TRANSPORT_MODE_LINE=1
+    PROG_NAME="bridge_with_samples"
     # ENCODER_ISR_ALGORITHM_V1=2
 )
 pico_enable_stdio_usb(bridge_with_samples 1)

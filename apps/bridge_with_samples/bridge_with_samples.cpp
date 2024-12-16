@@ -25,9 +25,6 @@
 #define MODE_REMOTE_PID 3
 #define MODE_EXERCISE 4
 #define MODE_COMMANDS_ONLY 5
-void do_commands();
-void heart_beat();
-static void local_execute_commands(Argv& args, transport::buffer::Handle bh);
 
 #include "pico/stdlib.h"
 #include <pico/error.h>
@@ -35,6 +32,11 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh);
 #include <version.h>
 
 using namespace transport::buffer;
+
+void do_commands();
+void heart_beat();
+void report_samples();
+static void local_execute_commands(Argv& args, transport::buffer::Handle bh);
 
 static bool test_get_char_if_available(int* char_received) {
 	int ch = getchar_timeout_us(0);
@@ -50,6 +52,7 @@ static bool test_get_char_if_available(int* char_received) {
 MotionControl* motion_control_ptr;
 Encoder*       left_encoder_ptr;
 Encoder*       right_encoder_ptr;
+Task*          sample_streamer_task_ptr;
 
 transport::Reader treader;
 int main()
@@ -62,7 +65,7 @@ int main()
 	trace_init();
 	sleep_ms(5000);
 //	print_fmt("bridge (version:%s ) starting ... \n", VERSION_NUMBER);
-    transport::send_boot_message("bridge (version:%s ) starting ... \n", VERSION_NUMBER);
+    transport::send_boot_message("bridge_with_samples (version:%s ) " PROG_NAME  "starting ... \n", VERSION_NUMBER);
 	
 	robot_init();
 	motion_control_ptr = get_motion_controller_ptr();
@@ -71,18 +74,27 @@ int main()
 
 	Task cli_task(20, do_commands);
 	Task heart_beat_task(2000, heart_beat);
+    Task sample_streamer_task(1000, report_samples);
+    sample_streamer_task.suspend();
+    sample_streamer_task_ptr = &sample_streamer_task;
 	// Task collect_samples_task(200, &robot_collect_encoder_samples);
 	// robot_start_encoder_sample_collection((uint64_t)10000);
 	while (1)
 	{
 		cli_task();
 		heart_beat_task();
-		// collect_samples_task();
+		sample_streamer_task();
 	}
 }
 void heart_beat()
 {
 	printf("Heart beat \n");
+}
+void report_samples()
+{
+    Handle h = tx_pool::allocate();
+    tojson_encoder_samples(h);
+    transport::send_json_response(&h);
 }
 void do_commands()
 {
@@ -170,10 +182,12 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
         {
             int interval_ms = 0;
             if(validate_encoders_stream(args, interval_ms)) {
-                // printf("%s\n", to_string(enumname));
-                Handle h = tx_pool::allocate();
-                tojson_encoder_samples(h);
-                transport::send_json_response(&h);
+                printf("Encoder stream  %s  interval_ms: %f\n", to_string(enumname), interval_ms);
+                sample_streamer_task_ptr->update_interval(interval_ms);
+                sample_streamer_task_ptr->start();
+                // Handle h = tx_pool::allocate();
+                // tojson_encoder_samples(h);
+                // transport::send_json_response(&h);
                 // printf("End of read encoder cmd \n");
             } else {
                 transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
@@ -184,10 +198,11 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
         {
             int number = 1;
             if(validate_encoders_stream_stop(args)) {
-                // printf("%s\n", to_string(enumname));
-                Handle h = tx_pool::allocate();
-                tojson_encoder_samples(h);
-                transport::send_json_response(&h);
+                printf("EncoderStream Stop%s\n", to_string(enumname));
+                sample_streamer_task_ptr->suspend();
+                // Handle h = tx_pool::allocate();
+                // tojson_encoder_samples(h);
+                // transport::send_json_response(&h);
                 // printf("End of read encoder cmd \n");
             } else {
                 transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
