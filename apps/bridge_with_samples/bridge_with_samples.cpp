@@ -37,6 +37,8 @@ void do_commands();
 void heart_beat();
 void report_samples();
 static void local_execute_commands(Argv& args, transport::buffer::Handle bh);
+void blink_onboard_led(int on_ms, int off_ms, int n);
+
 
 static bool test_get_char_if_available(int* char_received) {
 	int ch = getchar_timeout_us(0);
@@ -66,7 +68,7 @@ int main()
 	sleep_ms(5000);
 //	print_fmt("bridge (version:%s ) starting ... \n", VERSION_NUMBER);
     transport::send_boot_message("bridge_with_samples (version:%s ) " PROG_NAME  "starting ... \n", VERSION_NUMBER);
-	
+	blink_onboard_led(500, 200, 10);
 	robot_init();
 	motion_control_ptr = get_motion_controller_ptr();
 	left_encoder_ptr = get_encoder(DriveSide::left);
@@ -223,6 +225,7 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
             }
             break;
         }
+
         case CommandName::LoadTest: {
             const char* response_source = "qwertyuiopasdfghjklzxcvbnm1234567890~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:ZXCVBNM<>?";
             int count, response_length, nbr_per_second;
@@ -242,6 +245,9 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
             break;
         }
         case CommandName::SoftwareReset:
+            // blink_onboard_led(200, 500, 10);
+            // blink_onboard_led(0, 100, 1);
+            // printf("resetting pico\n");
             *((volatile uint32_t*)(PPB_BASE + 0x0ED0C)) = 0x5FA0004;
             break;
         case CommandName::Help:
@@ -262,4 +268,18 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
 
     }
     #endif
+}
+void blink_onboard_led(int on_ms, int off_ms, int n)
+{
+    #define LED_PIN 25
+    int count = n;
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+    stdio_init_all();
+    for(int i = 0; i < n; i++) {
+        gpio_put(LED_PIN, 0);
+        sleep_ms(off_ms);
+        gpio_put(LED_PIN,1);
+        sleep_ms(on_ms);
+    }
 }
