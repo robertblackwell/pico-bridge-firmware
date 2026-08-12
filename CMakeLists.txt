@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.27)
 
-set(ENV{PICO_SDK_PATH} /home/robert/pico/pico/pico-sdk)
+set(ENV{PICO_SDK_PATH} /home/robert/pico/pico-sdk)
 set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
 message("NOW")
 message("PICO_SDK_PATH         ${PICO_SDK_PATH}")
@@ -20,7 +20,8 @@ endif()
 
 project(pico_robot LANGUAGES C CXX ASM VERSION 0.0.1)
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # set(PIC_CXX_ENABLE_EXCEPTIONS 1)
 set(HASH_CMD ${CMAKE_CURRENT_SOURCE_DIR}/git_hash.py)
@@ -30,13 +31,13 @@ MESSAGE("BRANCH_HASH  [${BRANCH_HASH}]")
 # Initialize the SDK
 
 pico_sdk_init()
-
+add_link_options("-lstdc++exp")
 set(COMMON_SOURCE_FILES 
     ${COMMON_SRC_DIR}/cli/argv.cpp
     ${COMMON_SRC_DIR}/cli/argv.h
     ${COMMON_SRC_DIR}/cli/commands.h
     ${COMMON_SRC_DIR}/cli/commands.cpp
-#    ${COMMON_SRC_DIR}/cli/execute_commands.cpp
+    # ${COMMON_SRC_DIR}/cli/execute_commands.cpp
 
     ${COMMON_SRC_DIR}/enum.cpp
     ${COMMON_SRC_DIR}/enum.h
@@ -77,16 +78,16 @@ set(PICO_ROBOT_PATH ${PROJECT_SOURCE_DIR})
 # add_subdirectory(apps/test_command)
 # add_subdirectory(apps/test_uart)
 # add_subdirectory(apps/test_serial_ports)
-# add_subdirectory(apps/helloworld)
+add_subdirectory(apps/helloworld)
 
 # # add_subdirectory(apps/test_cli)
 
 # add_subdirectory(apps/test_irq)
 
-# # add_subdirectory(apps/test_motor)
+add_subdirectory(apps/test_motor)
 # # add_subdirectory(apps/test_motion)
 
-#add_subdirectory(apps/bridge)
+# add_subdirectory(apps/bridge)
 add_subdirectory(apps/bridge_with_samples)
 # add_subdirectory(apps/closed_loop)
 # add_subdirectory(apps/test_transport)

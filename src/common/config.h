@@ -55,32 +55,34 @@
 #define PID_RIGHT_KD 0.0      
 
 #elif defined(PIPICO)
+// On the pi-pico pin numbering is a bit tricky. 
+// 
 #define MOTOR_LEFT_ID 2222
 #define MOTOR_LEFT_DRI0002_SIDE 2
 #define MOTOR_LEFT_NAME "left"
-#define DR0002_PIN_E2 3
-#define DR0002_PIN_M2 2
-#define EC2_PIN_ENCODER_A 1
-#define EC2_PIN_ENCODER_B 0
+#define DR0002_PIN_E2 3      // GPIO3 which is physical pin 5 
+#define DR0002_PIN_M2 2      // GPIO2 which is physical pin 4 
+#define EC2_PIN_ENCODER_A 1  // GPIO1 which is physical pin 2
+#define EC2_PIN_ENCODER_B 0  // GPIO0 which is physical pin 1
 
 
-#define	MOTOR_LEFT_PWM_PIN                  3 //DR0002_PIN_E2
-#define MOTOR_LEFT_DIRECTION_SELECT_PIN     2 //DR0002_PIN_M2
-#define MOTOR_LEFT_ENCODER_A_INT 1         // motor yellow lead
-#define MOTOR_LEFT_ENCODER_B_INT 0         // motor white lead  
+#define	MOTOR_LEFT_PWM_PIN                  3 //see DR0002_PIN_E2 for comments
+#define MOTOR_LEFT_DIRECTION_SELECT_PIN     2 //see DR0002_PIN_M2 for comments
+#define MOTOR_LEFT_ENCODER_A_INT 1         // motor yellow lead see EC2_PIN_ENCODER_A for comments
+#define MOTOR_LEFT_ENCODER_B_INT 0         // motor white lead  see EC2_PIN_ENCODER_B for comments
 
 #define MOTOR_RIGHT_ID 1111
 #define MOTOR_RIGHT_DRI0002_SIDE 1
 #define MOTOR_RIGHT_NAME "right"
-#define DR0002_PIN_E1 15
-#define DR0002_PIN_M1 14
-#define EC1_PIN_ENCODER_A 13
-#define EC1_PIN_ENCODER_B 12
+#define DR0002_PIN_E1 15                    // GPIO15 which is physical pin 20
+#define DR0002_PIN_M1 14                    // GPIO14 which is physical pin 19
+#define EC1_PIN_ENCODER_A 13                // GPIO13 which is physical pin 17
+#define EC1_PIN_ENCODER_B 12                // GPIO12 which is physical pin 16
 
-#define MOTOR_RIGHT_PWM_PIN                 15 //DR0002_PIN_E1
-#define MOTOR_RIGHT_DIRECTION_SELECT_PIN    14 //DR0002_PIN_M1
-#define MOTOR_RIGHT_ENCODER_A_INT 13         // motor yellow lead
-#define MOTOR_RIGHT_ENCODER_B_INT 12         // motor white lead
+#define MOTOR_RIGHT_PWM_PIN                 15 //see DR0002_PIN_E1 for comments
+#define MOTOR_RIGHT_DIRECTION_SELECT_PIN    14 //see DR0002_PIN_M1 for comments
+#define MOTOR_RIGHT_ENCODER_A_INT 13         // motor yellow lead see EC1_PIN_ENCODER_A for comments
+#define MOTOR_RIGHT_ENCODER_B_INT 12         // motor white lead see EC1_PIN_ENCODER_B for comments
 
 
 #define PID_LEFT_KP_DEFAULT 0.0
@@ -110,7 +112,7 @@
                             // do their work. If not defined the ISR body is repeated in each ISR
 #define ISR_START_EXLICIT   // if defined encoder interrupts are not enabled until Encoder::start_interrupts() is called
 #define ISR_ATTACH_TO_PIN_A // if defined an encoder ISR will be attached to pin A for all motors.
-#undef ISR_ATTACH_TO_PIN_B // if defined an encoder ISR will be attached to pin B for all motors.
+#define ISR_ATTACH_TO_PIN_B // if defined an encoder ISR will be attached to pin B for all motors.
 
 #if defined(ISR_ATTACH_TO_PIN_A) && defined(ISR_ATTACH_TO_PIN_B)
     #define ISR_INTR_PER_MOTOR_REVOLUTION 48

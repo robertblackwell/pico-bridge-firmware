@@ -6,14 +6,25 @@
 
 struct EncoderSample
 {
+    uint64_t  s_sample_time_us;
+    uint64_t  s_sample_interval_us;
+
     // these values are captured from the isr with interrupts off
-    uint64_t            s_isr_starttime_us;
-    uint64_t            s_isr_endtime_us;
-    uint64_t            s_isr_saved_lifetime_tick_count;
-    uint32_t            s_isr_saved_sample_tick_count;
+    uint32_t s_isr_apin_prev_count;
+    uint32_t s_isr_apin_count;
+    uint32_t s_isr_bpin_prev_count;
+    uint32_t s_isr_bpin_count;
+
+    // these values are captured from the isr with interrupts off
+    // uint64_t            s_isr_starttime_us;
+    // uint64_t            s_isr_endtime_us;
+    // uint64_t            s_isr_saved_lifetime_tick_count;
+    // uint32_t            s_isr_saved_sample_tick_count;
     
     bool        s_contains_data;
-    long        s_sample_sum;
+    uint64_t    s_sample_interval_usecs;
+    uint32_t    s_sample_tick_count;
+    uint64_t    s_lifetime_tick_count;
     const char* s_pin_state;
     bool        s_apin_state;
     bool        s_bpin_state;

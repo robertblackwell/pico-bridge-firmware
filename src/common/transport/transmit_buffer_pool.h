@@ -6,27 +6,28 @@
 #include <stdint.h>
 #include "buffers.h"
 
-namespace transport {
-namespace buffer {    
-namespace tx_pool {
-
-void init();
-transport::buffer::Handle allocate();
-void deallocate(transport::buffer::Handle h);
 
 
-} // namespace tx_pool
+namespace transport::buffer::tx_pool {
 
-namespace rx_pool {
+    void init();
+    transport::buffer::Handle allocate();
+    void deallocate(transport::buffer::Handle h);
+
+
+} // namespace transport::buffer::tx_pool
+
+
+namespace transport::buffer::rx_pool {
 
 void init();
 transport::buffer::Handle allocate();
 void                  deallocate(transport::buffer::Handle h);
 
 
-} // namespace rx_pool
-} //namespace buffer
-} //namespace transport
+} // namespace transport::buffer::rx_pool
+
+
 
 
 #endif

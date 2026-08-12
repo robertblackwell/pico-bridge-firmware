@@ -2,7 +2,9 @@
 #undef FDEBUG_ON
 #include <stdio.h>
 #include <cstdint>
+#include <cinttypes>
 #include <pico/stdlib.h>
+#include <print>
 
 #include <pico/stdio.h>
 #include <hardware/sync.h>
@@ -11,22 +13,50 @@
 #include "trace.h"
 #include "encoder_v2.h"
 #include "reporter.h"
+#define isr_testing
+void encoder_left_isr_a_pin(uint pin, uint32_t event, Encoder* encoder);
+void encoder_left_isr_b_pin(uint pin, uint32_t event, Encoder* encoder);
+void encoder_right_isr_a_pin(uint pin, uint32_t event, Encoder* encoder);
+void encoder_right_isr_b_pin(uint pin, uint32_t event, Encoder* encoder);
+
+// Encoder encoder_left{MOTOR_LEFT_ID, MOTOR_LEFT_NAME, MOTOR_LEFT_ENCODER_A_INT, MOTOR_LEFT_ENCODER_B_INT, &encoder_left_isr_a_pin, &encoder_left_isr_b_pin};
+// Encoder encoder_right{MOTOR_RIGHT_ID, MOTOR_RIGHT_NAME, MOTOR_RIGHT_ENCODER_A_INT, MOTOR_RIGHT_ENCODER_B_INT, &encoder_right_isr_a_pin, &encoder_right_isr_b_pin};
 
 Encoder encoder_left{MOTOR_LEFT_ID, MOTOR_LEFT_NAME, MOTOR_LEFT_ENCODER_A_INT, MOTOR_LEFT_ENCODER_B_INT};
 Encoder encoder_right{MOTOR_RIGHT_ID, MOTOR_RIGHT_NAME, MOTOR_RIGHT_ENCODER_A_INT, MOTOR_RIGHT_ENCODER_B_INT};
-void Encoder::encoders_start()
+
+bool isr_debug = false;
+
+void encoder_left_isr_a_pin(uint pin, uint32_t event, Encoder* encoder)
 {
-    encoder_left.start_interrupts();
-    encoder_right.start_interrupts();
+    if(isr_debug) printf("encoder_left_isr_a_pin pin: %ld event: %ld encoder:%x count:%d\n", pin,  event, &encoder_left, encoder_left.m_a_pin_isr_count);
+    const auto v = encoder_left.m_a_pin_isr_count;
+    encoder_left.m_a_pin_isr_count = v + 1;
 }
-Encoder* Encoder::encoder_left_start()
+void encoder_left_isr_b_pin(uint pin, uint32_t event, Encoder* encoder)
 {
-    encoder_left.start_interrupts();
+    if(isr_debug) printf("encoder_left_isr_b_pin pin: %ld event: %ld encoder:%x count:%d\n", pin,  event, &encoder_left, encoder_left.m_b_pin_isr_count);
+    const auto v = encoder_left.m_b_pin_isr_count;
+    encoder_left.m_b_pin_isr_count = v + 1;
+}
+void encoder_right_isr_a_pin(uint pin, uint32_t event,  Encoder* encoder)
+{
+    if(isr_debug) printf("encoder_right_isr_a_pin pin: %ld event: %ld encoder:%x count:%d\n", pin,  event, &encoder_right, encoder_left.m_a_pin_isr_count);
+    const auto v = encoder_right.m_a_pin_isr_count;
+    encoder_right.m_a_pin_isr_count = v + 1;
+}
+void encoder_right_isr_b_pin(uint pin, uint32_t event,  Encoder* encoder) {
+    if(isr_debug) printf("encoder_right_isr_b_pin pin: %ld event: %ld encoder:%x count:%d\n", pin,  event, &encoder_right, encoder_right.m_b_pin_isr_count);
+    const auto v = encoder_right.m_b_pin_isr_count;
+    encoder_right.m_b_pin_isr_count = v + 1;
+}
+
+Encoder* Encoder::get_encoder_left()
+{
     return &encoder_left;
 }
-Encoder* Encoder::encoder_right_start()
+Encoder* Encoder::get_encoder_right()
 {
-    encoder_right.start_interrupts();
     return &encoder_right;
 }
 
@@ -39,26 +69,39 @@ uint32_t local_save_and_disable_interrupts(){
     __asm volatile(".syntax unified\n" "msr PRIMASK,%0"::"r" (status) : "memory" );
     return status;
 }
-#ifdef isr_testing
-long usec_accumulator = 0;
-long long previous_usecs = 0;
-int count_accumulator = 0;
-int tick_count_before_reporting = 600
-#endif
+
+#if 1
 void encoder_isr(uint pin, uint32_t event)
 {
-    Encoder* ptr;
-    // most of the time will only be using the A pin on each encoder
-    // so put those at the top of the if-else chain
-    if(pin == MOTOR_LEFT_ENCODER_A_INT) {
-        ptr = &encoder_left;
-    } else if(pin == MOTOR_RIGHT_ENCODER_A_INT) {
-        ptr = &encoder_right;
-    } else if(pin == MOTOR_LEFT_ENCODER_B_INT) {
-        ptr = &encoder_left;
-    } else if(pin == MOTOR_RIGHT_ENCODER_A_INT) {
-        ptr = &encoder_right;
+    switch(pin) {
+        case MOTOR_LEFT_ENCODER_A_INT: {
+                if(isr_debug) printf("encoder_left_isr_a_pin pin: %ld event: %ld encoder:%x count:%d\n", pin,  event, &encoder_left, encoder_left.m_a_pin_isr_count);
+                const auto v = encoder_left.m_a_pin_isr_count;
+                encoder_left.m_a_pin_isr_count = v + 1;
+            }
+            break;
+        case MOTOR_LEFT_ENCODER_B_INT: { 
+                if(isr_debug) printf("encoder_left_isr_b_pin pin: %ld event: %ld encoder:%x count:%d\n", pin,  event, &encoder_left, encoder_left.m_b_pin_isr_count);
+                const auto v = encoder_left.m_b_pin_isr_count;
+                encoder_left.m_b_pin_isr_count = v + 1;
+            }
+            break;
+        case MOTOR_RIGHT_ENCODER_A_INT: {
+                if(isr_debug) printf("encoder_right_isr_a_pin pin: %ld event: %ld encoder:%x count:%d\n", pin,  event, &encoder_right, encoder_left.m_a_pin_isr_count);
+                const auto v = encoder_right.m_a_pin_isr_count;
+                encoder_right.m_a_pin_isr_count = v + 1;
+            }
+            break;
+        case MOTOR_RIGHT_ENCODER_B_INT: {
+                if(isr_debug) printf("encoder_right_isr_b_pin pin: %ld event: %ld encoder:%x count:%d\n", pin,  event, &encoder_right, encoder_right.m_b_pin_isr_count);
+                const auto v = encoder_right.m_b_pin_isr_count;
+                encoder_right.m_b_pin_isr_count = v + 1;
+            }
+            break;
     }
+}
+#endif
+#if 0
     if(ptr->m_isr_first_time_called_flag) {
         ptr->m_isr_first_time_called_flag = false;
         ptr->m_isr_sample_tick_count = 0;
@@ -89,12 +132,13 @@ void encoder_isr(uint pin, uint32_t event)
         printf("total_usecs: %lld\n", total_usecs);
         printf("count: %d\n", k);
         printf("average_interval: %f\n", average_interval);
-        count_accumulator = 0;
-        previous_usecs = x;
+        // count_accumulator = 0;
+        // previous_usecs = x;
     }
     #endif
     // printf("common encoder_isr pin: %d event: %d ptr: %x real x: %ld count: %d\n", pin, event, ptr, difference, ptr->m_isr_interrupt_count);
 }
+#endif
 void local_attach_interrupts(int gpio_pin, uint32_t events_of_interest, void(*handler)(uint pin, uint32_t event))
 {
     gpio_init(gpio_pin);
@@ -124,6 +168,7 @@ const char* pin_state(uint8_t apin_state, uint8_t bpin_state)
 }
 
 Encoder::Encoder(){}
+// Encoder::Encoder(int id, const char* name, int encoder_a_pin, int encoder_b_pin, void (*apin_isr)(uint, uint32_t, Encoder*), void(*bpin_isr)(uint, uint32_t, Encoder*))
 Encoder::Encoder(int id, const char* name, int encoder_a_pin, int encoder_b_pin)
 {
     FTRACE("Encode constructor addr: %p, id: %d name: %s, apin: %d bpin: %d a_pin_isr: %p, b_pin_isr: %p\n",
@@ -132,79 +177,49 @@ Encoder::Encoder(int id, const char* name, int encoder_a_pin, int encoder_b_pin)
     m_name = name;
     m_encoder_a_pin = encoder_a_pin;
     m_encoder_b_pin = encoder_b_pin;
+    m_a_pin_isr_previous_count = 0;
 
-    m_isr_first_time_called_flag = true;
-    m_isr_lifetime_tick_count = 0;
-    m_isr_sample_tick_count = 0;
-    m_isr_sample_start_time_usecs = 0;
-    m_isr_sample_time_of_most_recent_tick_usecs = 0;
-    
+    m_b_pin_isr_previous_count = 0;
     m_sample.s_available = false;
 }
-
-void Encoder::start_interrupts() const
+static int isrflag = 0;
+void Encoder::start_handling_interrupts() const
 {
-    auto events_both = GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE;
+    // if(isrflag != 0) {
+    //     return;
+    // } 
+    // isrflag = 1;
+    constexpr auto events_both = GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE;
     auto events_fall = GPIO_IRQ_EDGE_FALL;
     auto events_rise = GPIO_IRQ_EDGE_RISE;
-    local_attach_interrupts(m_encoder_a_pin, events_both, encoder_isr);
-}
-#if 0
-bool Encoder::available() const
-{
-    return m_sample.s_available;
-}
-void Encoder::consume(EncoderSample& sample)
-{
-    // log_print("Encoder::consume ", m_name, "\n");
-    sample = m_sample;
-    m_sample.s_available = false;
-}
-/**
- * void run() - called by the arduino loop function periodically to collect
- * lastest current speed and total and incremental distance travelled values.
- * These values can be accessed via
- * float get_speed() - returns output shaft speed in revolutions / sec
- * float get_distance() - total number of output shaft revolutions 
-*/
-void Encoder::run()
-{
-    // noInterrupts();
-    gpio_irq_off(m_encoder_a_pin);
-    gpio_irq_off(m_encoder_b_pin);
+    printf("Encoder::start_handling_interrupts() \n");
+    if(m_encoder_a_pin == MOTOR_LEFT_ENCODER_A_INT) {
+        printf("left: %x %x %x %x\n", m_a_pin_isr, m_b_pin_isr, &encoder_left_isr_a_pin, &encoder_left_isr_b_pin);
 
-    m_sample.s_timestamp_musecs = m_isr_timestamp_musecs;
-    m_sample.s_apin_state = m_apin_state;
-    m_sample.s_bpin_state = m_bpin_state;
-    m_sample.s_sample_sum =  m_isr_saved_sample_sum;
-    m_sample.s_available = m_isr_new_sample_sum_available_flag;
-    m_isr_new_sample_sum_available_flag = false;
-    auto report = m_isr_last_report;
-    gpio_irq_backon(m_encoder_a_pin);
-    gpio_irq_backon(m_encoder_b_pin);
+        // local_attach_interrupts(m_encoder_a_pin, events_both, &encoder_left_isr_a_pin);
+        // local_attach_interrupts(m_encoder_b_pin, events_both, &encoder_left_isr_b_pin);
 
-    // printf("after sample collection \n");
-    // printf("  report          : %ld\n", report);
-    // printf("  sample_sum      : %ld\n", m_sample.s_sample_sum);
-    // printf("  sample available: %d\n", (int)m_sample.s_available);
-    // interrupts();
+        // local_attach_interrupts(m_encoder_a_pin, events_both, m_a_pin_isr);
+        // local_attach_interrupts(m_encoder_b_pin, events_both, m_b_pin_isr);
 
-    if(! m_sample.s_available) {
-        m_sample.reset();
-        // print_fmt("encoder.run name: ", m_name, " addr:", (long)this, "did not find a new sample - motor speed is probably : 0 mm/sec  \n");
-        return;
+        local_attach_interrupts(m_encoder_a_pin, events_both, &encoder_isr);
+        local_attach_interrupts(m_encoder_b_pin, events_both, &encoder_isr);
+    } else {
+        printf("right: %x %x %x %x\n", m_a_pin_isr, m_b_pin_isr, &encoder_right_isr_a_pin, &encoder_right_isr_b_pin);
+
+        // local_attach_interrupts(m_encoder_a_pin, events_both, &encoder_right_isr_a_pin);
+        // local_attach_interrupts(m_encoder_b_pin, events_both, &encoder_right_isr_b_pin);
+
+        // local_attach_interrupts(m_encoder_a_pin, events_both, m_a_pin_isr);
+        // local_attach_interrupts(m_encoder_b_pin, events_both, m_b_pin_isr);
+
+        local_attach_interrupts(m_encoder_a_pin, events_both, &encoder_isr);
+        local_attach_interrupts(m_encoder_b_pin, events_both, &encoder_isr);
     }
-    m_sample.s_contains_data = true;
-    m_sample.s_name = m_name;
-    m_sample.s_pin_state = pin_state(m_sample.s_apin_state, m_sample.s_bpin_state); 
-    m_sample.s_musecs_per_interrupt  =	((float)m_sample.s_sample_sum)/((long)ISR_SAMPLE_SIZE);
-    m_sample.s_musecs_per_motor_revolution =	((float)m_sample.s_sample_sum * (float)ISR_INTR_PER_MOTOR_REVOLUTION)/((long)ISR_SAMPLE_SIZE);
-    m_sample.s_motor_rpm = (ISR_SECS_IN_MINUTE * 1000000.0/ m_sample.s_musecs_per_motor_revolution);
-    m_sample.s_wheel_rpm = m_sample.s_motor_rpm / ((float)ISR_GEAR_RATIO);
-    m_sample.s_speed_mm_per_second = (m_sample.s_wheel_rpm * ISR_SECS_IN_MINUTE * (ISR_PI_VALUE)) / ISR_WHEEL_DIAMETER_MM;
 }
-#endif
+
 void update_sample_from_isr(EncoderSample& sample);
+void fill_sample(EncoderSample& sample, uint64_t sample_time, uint64_t previous_sample_time_usecs, uint32_t sample_tick_count);
 
 /**
  * WARNING - This function turns off interrupts
@@ -218,42 +233,120 @@ void Encoder::unsafe_collect_two_encoder_samples(
     Encoder& right_encoder, EncoderSample& right_sample
     ) 
 {
-    //printf("unsafe_collect_two_encoder_samples\n");
+    #define EC_DEBUG
+    printf("Begin========================================================================================================\n");
+    uint32_t raw_left_a_count; 
+    uint32_t raw_left_b_count; 
+    uint32_t raw_right_a_count; 
+    uint32_t raw_right_b_count;
     //https://github.com/raspberrypi/pico-sdk/issues/1644
     // see this reference for bug in save_and_disable_interrupts
 
-    // interesting discussioin on making isrs faster
+    // interesting discussion on making isrs faster
     //https://forums.raspberrypi.com/viewtopic.php?t=369434
-    uint32_t interrupt_status = local_save_and_disable_interrupts();
 
-        left_sample.s_isr_starttime_us = left_encoder.m_isr_sample_start_time_usecs;
-        left_sample.s_isr_endtime_us = left_encoder.m_isr_sample_time_of_most_recent_tick_usecs;
-        left_sample.s_isr_saved_lifetime_tick_count = left_encoder.m_isr_lifetime_tick_count;
-        left_sample.s_isr_saved_sample_tick_count = left_encoder.m_isr_sample_tick_count;
-        left_encoder.m_isr_sample_tick_count = 0;
-        left_encoder.m_isr_sample_start_time_usecs = left_encoder.m_isr_sample_time_of_most_recent_tick_usecs;
-
-        right_sample.s_isr_starttime_us = right_encoder.m_isr_sample_start_time_usecs;
-        right_sample.s_isr_endtime_us = right_encoder.m_isr_sample_time_of_most_recent_tick_usecs;
-        right_sample.s_isr_saved_lifetime_tick_count = right_encoder.m_isr_lifetime_tick_count;
-        right_sample.s_isr_saved_sample_tick_count = right_encoder.m_isr_sample_tick_count;
-        right_encoder.m_isr_sample_tick_count = 0;
-        right_encoder.m_isr_sample_start_time_usecs = right_encoder.m_isr_sample_time_of_most_recent_tick_usecs;
-
+    const uint64_t sample_time = to_us_since_boot(get_absolute_time());
+    // const uint32_t left_a_prev_count = left_encoder.m_a_pin_isr_previous_count;
+    // const uint32_t left_b_prev_count = left_encoder.m_b_pin_isr_previous_count;
+    // const uint32_t right_a_prev_count = right_encoder.m_a_pin_isr_previous_count;
+    // const uint32_t right_b_prev_count = right_encoder.m_b_pin_isr_previous_count;
+    #ifdef EC_DEBUG
+    // printf("SAVED unsafe_collect_two_encoder_samples \n\tleft_a_prev_count: %" PRIu32 " \n\tleft_b_prev_count: %" PRIu32 " \n\tright_a_prev_count: %" PRIu32 " \n\tright_b_prev_count: %" PRIu32 "\n", 
+    //     left_encoder.m_a_pin_isr_previous_count, left_encoder.m_b_pin_isr_previous_count, 
+    //     right_encoder.m_a_pin_isr_previous_count, right_encoder.m_b_pin_isr_previous_count);
+    // printf("\n\tleft_a_prev_count: %" PRIu32 "\n\tleft_b_prev_count: %" PRIu32 "\n\tright_a_prev_count: %" PRIu32 " \n\tright_b_prev_count: %" PRIu32 "\n", 
+    //     left_a_prev_count, left_b_prev_count, right_a_prev_count, right_b_prev_count);
+    #endif
+    
+    const uint32_t interrupt_status = local_save_and_disable_interrupts();
+    {
+        raw_left_a_count = left_encoder.m_a_pin_isr_count; 
+        raw_left_b_count = left_encoder.m_b_pin_isr_count; 
+        raw_right_a_count = right_encoder.m_a_pin_isr_count; 
+        raw_right_b_count = right_encoder.m_b_pin_isr_count;
+    }
     restore_interrupts(interrupt_status);
 
-    update_sample_from_isr(left_sample);
-    update_sample_from_isr(right_sample);
-}
+    left_encoder.m_a_pin_saved_count = raw_left_a_count;
+    left_encoder.m_b_pin_saved_count = raw_left_b_count;
+    right_encoder.m_a_pin_saved_count = raw_right_a_count;
+    right_encoder.m_b_pin_saved_count = raw_right_b_count;
 
-/**
- * Take the data collected for a single encoder in 'unsafe_collect_two_encoder_samples`
- * and perform the calcs necessary to get motor rpm, wheel rpm and wheel speed.
- * @param sample
- */
-void update_sample_from_isr(EncoderSample& sample)
+    const auto left_sample_tick_count =
+            (raw_left_a_count - left_encoder.m_a_pin_isr_previous_count)
+        +   (raw_left_b_count - left_encoder.m_b_pin_isr_previous_count);
+    fill_sample(left_sample, sample_time, left_encoder.m_previous_sample_time_usecs, left_sample_tick_count);
+    left_encoder.m_previous_sample_time_usecs = sample_time;
+    left_encoder.m_a_pin_isr_previous_count = raw_left_a_count;
+    left_encoder.m_b_pin_isr_previous_count = raw_left_b_count;
+
+    const auto right_sample_tick_count =
+            (raw_right_a_count - right_encoder.m_a_pin_isr_previous_count)
+        +   (raw_right_b_count - right_encoder.m_b_pin_isr_previous_count);
+    fill_sample(right_sample, sample_time, right_encoder.m_previous_sample_time_usecs, right_sample_tick_count);
+    right_encoder.m_previous_sample_time_usecs = sample_time;
+    right_encoder.m_a_pin_isr_previous_count = raw_right_a_count;
+    right_encoder.m_b_pin_isr_previous_count = raw_right_b_count;
+
+    DUMP_ENCODER_SAMPLE(left_encoder, left_sample);
+    DUMP_ENCODER_SAMPLE(right_encoder, right_sample);
+#ifdef EC_DEBUG
+    std::print("left_sample_interval: {} right_sample_interval: {}\n", left_sample_interval, right_sample_interval);
+    printf("left_sample_interval: %llu right_sample_interval: %llu\n", left_sample_interval, right_sample_interval);
+    printf("sample_time: %llu\n", sample_time);
+    printf("left_encoder.m_previous_sample_time_usecs: %llu\n", left_encoder.m_previous_sample_time_usecs);
+    printf("right_encoder.m_previous_sample_time_usecs: %llu\n", right_encoder.m_previous_sample_time_usecs);
+    printf("\n\tleft_total_count: %f \n\tright_total_count: %f \n\tleft_motor_revs: %f \n\tright_motor_revs: %f\n",
+        static_cast<double>(left_sample.s_sample_tick_count), static_cast<double>(right_sample.s_sample_tick_count), left_motor_revs, right_motor_revs);
+    printf("\n\tleft_wheel_revs: %f \n\tright_wheel_revs: %f\n", left_wheel_revs, right_wheel_revs);
+    printf("\n\tleft_motor_rpm: %f\n\tright_motor_rpm: %f\n\tleft_wheel_rpm: %f\n\tright_wheel_rpm: %f\n",
+        left_sample.s_motor_rpm, right_sample.s_motor_rpm, left_sample.s_wheel_rpm, right_sample.s_wheel_rpm);
+    #endif
+
+
+    #ifdef EC_DEBUG
+    // printf("left a_pin_saved_count: %f left b_pin_saved_count %f \n", (float)left_encoder.m_a_pin_saved_count, (float)left_encoder.m_b_pin_saved_count);
+    // printf("left isr_saved_sample_tick_count: %f \n", (float)left_sample.s_isr_saved_sample_tick_count);
+    // printf("right a_pin_saved_count: %f right b_pin_saved_count %f \n", (float)right_encoder.m_a_pin_saved_count, (float)right_encoder.m_b_pin_saved_count);
+    // printf("right isr_saved_sample_tick_count: %f \n", (float)right_sample.s_isr_saved_sample_tick_count);
+    // update_sample_from_isr(left_sample);
+    // update_sample_from_isr(right_sample);
+    #endif
+    left_encoder.m_a_pin_isr_previous_count = raw_left_a_count;
+    left_encoder.m_b_pin_isr_previous_count = raw_left_b_count;
+    right_encoder.m_a_pin_isr_previous_count = raw_right_a_count;
+    right_encoder.m_b_pin_isr_previous_count = raw_right_b_count;
+    #ifdef EC_DEBUG
+    // printf("SAVED unsafe_collect_two_encoder_samples \n\tleft_a_prev_count: %" PRIu32 " \n\tleft_b_prev_count: %" PRIu32 " \n\tright_a_prev_count: %" PRIu32 " \n\tright_b_prev_count: %" PRIu32 "\n", 
+    //     left_encoder.m_a_pin_isr_previous_count, left_encoder.m_b_pin_isr_previous_count, 
+    //     right_encoder.m_a_pin_isr_previous_count, right_encoder.m_b_pin_isr_previous_count);
+    #endif
+    printf("End========================================================================================================\n");
+}
+void fill_sample(EncoderSample& sample, uint64_t sample_time, uint64_t previous_sample_time_usecs, uint32_t sample_tick_count)
 {
-    //printf("encoder::update_sample_from_isr\n");
+    if (sample_tick_count == 0) {
+        sample.s_elapsed_usecs = sample_time - previous_sample_time_usecs;
+        sample.s_sample_tick_count = sample_tick_count;
+        sample.s_motor_rpm = 0.0;
+        sample.s_wheel_rpm = 0.0;
+        sample.s_speed_mm_per_second = 0.0;
+    } else {
+        sample.s_elapsed_usecs = sample_time - previous_sample_time_usecs;
+        sample.s_sample_tick_count = sample_tick_count;
+        const double left_sample_interval_secs = static_cast<double>(sample.s_elapsed_usecs)/1000000.0;
+        const double left_motor_revs = sample_tick_count / static_cast<double>(ISR_INTR_PER_MOTOR_REVOLUTION);
+        const double left_wheel_revs = left_motor_revs / (double)ISR_GEAR_RATIO;
+        sample.s_motor_rpm = (left_motor_revs / left_sample_interval_secs)*60.0;
+        sample.s_wheel_rpm = (left_wheel_revs / left_sample_interval_secs)*60.0;
+        sample.s_wheel_rps = sample.s_wheel_rpm / 60.0;
+        sample.s_speed_mm_per_second = sample.s_wheel_rps * (ISR_PI_VALUE) * ISR_WHEEL_DIAMETER_MM;
+    }
+}
+void sample_from_encoder(Encoder& encoder, EncoderSample& sample)
+{
+#if 0
+    // printf("encoder::update_sample_from_isr ticks: %ld\n", sample.s_isr_saved_sample_tick_count);
     sample.s_contains_data = true;
     if(sample.s_isr_saved_sample_tick_count == 0) {
         sample.s_motor_rpm = 0.0;
@@ -262,13 +355,69 @@ void update_sample_from_isr(EncoderSample& sample)
         sample.s_musecs_per_interrupt  =	0.0;
         sample.s_musecs_per_motor_revolution =	0.0;
     } else {
-        // sample.s_pin_state = pin_state(sample.s_apin_state, sample.s_bpin_state); 
-        sample.s_elapsed_usecs = sample.s_isr_endtime_us - sample.s_isr_starttime_us;
-        sample.s_musecs_per_interrupt  =	((float)sample.s_elapsed_usecs)/((float)sample.s_isr_saved_sample_tick_count);
-        sample.s_musecs_per_motor_revolution =	((float)sample.s_elapsed_usecs / ((float)sample.s_isr_saved_sample_tick_count)) * (float)ISR_INTR_PER_MOTOR_REVOLUTION;
+        // sample.s_pin_state = pin_state(sample.s_apin_state, sample.s_bpin_state);
+        // sample.s_elapsed_usecs = sample.s_isr_endtime_us - sample.s_isr_starttime_us;
+        sample.s_musecs_per_interrupt  =	((double)sample.s_elapsed_usecs)/((double)sample.s_isr_saved_sample_tick_count);
+        sample.s_musecs_per_motor_revolution =	((double)sample.s_elapsed_usecs / ((double)sample.s_isr_saved_sample_tick_count)) * (double)ISR_INTR_PER_MOTOR_REVOLUTION;
         sample.s_motor_rpm = (ISR_SECS_IN_MINUTE * 1000000.0/ sample.s_musecs_per_motor_revolution);
         sample.s_wheel_rpm = sample.s_motor_rpm / ((float)ISR_GEAR_RATIO);
         sample.s_wheel_rps = sample.s_wheel_rpm / (ISR_SECS_IN_MINUTE);
         sample.s_speed_mm_per_second = sample.s_wheel_rps * (ISR_PI_VALUE) * ISR_WHEEL_DIAMETER_MM;
+        // printf("isr_saved_sample_tick_count: %ld\n", sample.s_isr_saved_sample_tick_count);
+        // printf("elapsed_usecs: %f\n", (float)sample.s_elapsed_usecs);
+        // printf("ISR_INT_PER_MOTOR_REVOLUTION: %f\n", (float)ISR_INTR_PER_MOTOR_REVOLUTION);
+        // printf("usecs_per_interrupt: %f\n", sample.s_musecs_per_interrupt);
+        // printf("usecs_per_motor_revolution: %f \n", sample.s_musecs_per_motor_revolution);
+        // printf("ISR_SECS_IN_MINUTE %f\n", (float)ISR_SECS_IN_MINUTE);
+        // printf("motor_rpm: %f \n", sample.s_motor_rpm);
+        // printf("ISR_GEAR_RATIO: %f\n", (float)ISR_GEAR_RATIO);
+        // printf("wheel_rpm: %f  wheel_rps: %f\n", sample.s_wheel_rpm, sample.s_wheel_rps);
+        // printf("speed_mm_per_seconds: %f\n", sample.s_speed_mm_per_second);
     }
+#endif
+}
+/**
+ * Take the data collected for a single encoder in 'unsafe_collect_two_encoder_samples`
+ * and perform the calcs necessary to get motor rpm, wheel rpm and wheel speed.
+ * @param sample
+ */
+void update_sample_from_isr(EncoderSample& sample)
+{
+    // printf("encoder::update_sample_from_isr ticks: %ld\n", sample.s_isr_saved_sample_tick_count);
+    sample.s_contains_data = true;
+    if(sample.s_isr_saved_sample_tick_count == 0) {
+        sample.s_motor_rpm = 0.0;
+        sample.s_wheel_rpm = 0.0;
+        sample.s_speed_mm_per_second = 0.0; 
+        sample.s_musecs_per_interrupt  =	0.0;
+        sample.s_musecs_per_motor_revolution =	0.0;
+    } else {
+        // sample.s_pin_state = pin_state(sample.s_apin_state, sample.s_bpin_state); 
+        // sample.s_elapsed_usecs = sample.s_isr_endtime_us - sample.s_isr_starttime_us;
+        sample.s_musecs_per_interrupt  =	((double)sample.s_elapsed_usecs)/((double)sample.s_isr_saved_sample_tick_count);
+        sample.s_musecs_per_motor_revolution =	((double)sample.s_elapsed_usecs / ((double)sample.s_isr_saved_sample_tick_count)) * (double)ISR_INTR_PER_MOTOR_REVOLUTION;
+        sample.s_motor_rpm = (ISR_SECS_IN_MINUTE * 1000000.0/ sample.s_musecs_per_motor_revolution);
+        sample.s_wheel_rpm = sample.s_motor_rpm / ((float)ISR_GEAR_RATIO);
+        sample.s_wheel_rps = sample.s_wheel_rpm / (ISR_SECS_IN_MINUTE);
+        sample.s_speed_mm_per_second = sample.s_wheel_rps * (ISR_PI_VALUE) * ISR_WHEEL_DIAMETER_MM;
+        // printf("isr_saved_sample_tick_count: %ld\n", sample.s_isr_saved_sample_tick_count);
+        // printf("elapsed_usecs: %f\n", (float)sample.s_elapsed_usecs);
+        // printf("ISR_INT_PER_MOTOR_REVOLUTION: %f\n", (float)ISR_INTR_PER_MOTOR_REVOLUTION);
+        // printf("usecs_per_interrupt: %f\n", sample.s_musecs_per_interrupt);
+        // printf("usecs_per_motor_revolution: %f \n", sample.s_musecs_per_motor_revolution);
+        // printf("ISR_SECS_IN_MINUTE %f\n", (float)ISR_SECS_IN_MINUTE);
+        // printf("motor_rpm: %f \n", sample.s_motor_rpm);
+        // printf("ISR_GEAR_RATIO: %f\n", (float)ISR_GEAR_RATIO);
+        // printf("wheel_rpm: %f  wheel_rps: %f\n", sample.s_wheel_rpm, sample.s_wheel_rps);
+        // printf("speed_mm_per_seconds: %f\n", sample.s_speed_mm_per_second);
+    }
+}
+void dump_encoder_sample(char* tag,Encoder& encoder, EncoderSample& sample)
+{
+    printf("Dump of tag: %s encoder: %p sample %p\n", tag, &encoder, &sample);
+    printf("sample_interval: %llu \n", sample.s_elapsed_usecs);
+    printf("sample_tick_count: %f \n", static_cast<double>(sample.s_sample_tick_count));
+    printf("motor_rpm: %f\nwheel_rpm: %f\n", sample.s_motor_rpm, sample.s_wheel_rpm);
+    printf("wheel_speed_mm_per_sec: %f\n", sample.s_speed_mm_per_second);
+    printf("End Dump of tag: %s encoder: %p sample %p\n", tag, &encoder, &sample);
 }

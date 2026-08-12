@@ -4,7 +4,7 @@
 #include <hardware/gpio.h>
 #include <hardware/pwm.h>
 #include <tusb.h>
-#include <utils.h>
+#include <trace.h>
 #include <dri0002.h>
 #include "config.h"
 // historical record

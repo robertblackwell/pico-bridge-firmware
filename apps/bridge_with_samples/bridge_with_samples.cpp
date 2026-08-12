@@ -29,8 +29,8 @@ using namespace transport::buffer;
 static void local_execute_commands(Argv& args, transport::buffer::Handle bh);
 void do_commands();
 void heart_beat();
-
 transport::Reader treader;
+#if 0
 DRI0002V1_4 dri0002{
 		MOTOR_RIGHT_DRI0002_SIDE, 
 		MOTOR_RIGHT_PWM_PIN, 				// E1
@@ -43,36 +43,41 @@ DRI0002V1_4 dri0002{
 Encoder* encoder_left_ptr;
 Encoder* encoder_right_ptr;
 MotionControl motion_controller{&dri0002, encoder_left_ptr, encoder_right_ptr};
-
+#endif
 void encoder_samples();
 int main()
 {
 	transport::transport_init();
 	treader.begin();
-	encoder_left_ptr = Encoder::encoder_left_start();
-	encoder_right_ptr = Encoder::encoder_right_start();
 
 	stdio_init_all();
 	stdio_set_translate_crlf(&stdio_usb, false);
 	trace_init();
 	sleep_ms(5000);
-//	print_fmt("bridge (version:%s ) starting ... \n", VERSION_NUMBER);
-    transport::send_boot_message("bridge_with_samplesmake (version:%s ) starting ... \n", VERSION_NUMBER);
+	print_fmt("bridge (version:%s ) starting ... \n", VERSION_NUMBER);
+    printf("about to call robot::init() \n");
+    robot::init();
+
+    Encoder* encoder_left_ptr = robot::get_encoder(DriveSide::left);
+    Encoder* encoder_right_ptr = robot::get_encoder(DriveSide::right);
+    transport::send_boot_message("bridge_with_samples make (version:%s ) starting ... \n", VERSION_NUMBER);
 	Task cli_task(20, do_commands);
 	Task heart_beat_task(1000, heart_beat);
 	/**
 	 * Setup a task that reports encoder samples regularly, but it will not start reporting 
 	 * until an encoders_stream command is issued
 	 */
-	Reporter samples_reporter{encoder_left_ptr, encoder_right_ptr};
-	Task samples_streamer{1000, &samples_reporter};
-	samples_streamer.suspend();
+	// Reporter samples_reporter{encoder_left_ptr, encoder_right_ptr};
+	// Task samples_streamer{1000, &samples_reporter};
+	// samples_streamer.suspend();
 
-	while (1)
+    robot::start();
+	while (true)
 	{
+	    robot::poll();
 		cli_task();
 		heart_beat_task();
-		samples_streamer();
+		// samples_streamer();
 	}
 }
 void heart_beat()
@@ -82,7 +87,7 @@ void heart_beat()
 void encoder_samples() 
 {
 	Handle h = tx_pool::allocate();
-	tojson_encoder_samples(motion_controller, h);
+	robot::tojson_encoder_samples(h);
 	transport::send_json_response(&h);
 }
 void do_commands()
@@ -122,7 +127,7 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
         case CommandName::MotorsPwmPercent: {
             double left_pwm, right_pwm;
             if(validate_pwm(args, left_pwm, right_pwm)) {
-                robot_set_raw_pwm_percent(motion_controller, left_pwm, right_pwm);
+                robot::set_raw_pwm_percent(left_pwm, right_pwm);
                 transport::send_command_ok("MotorPwmPercent %f  %f", left_pwm, right_pwm);
             } else {
                 transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
@@ -133,7 +138,7 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
             double left_rpm, right_rpm;
             if(validate_rpm(args, left_rpm, right_rpm)) {
                 printf("%f %f\n", left_rpm, right_rpm);
-                if(robot_set_rpm(motion_controller, left_rpm, right_rpm)) {
+                if(robot::set_rpm(left_rpm, right_rpm)) {
                     transport::send_command_ok("MotorRpmCommand");
                 } else {
                     transport::send_command_error("Command %s failed probably trying to change direction without stopping\n", to_string(enumname), sb_buffer_as_cstr(bh));
@@ -146,7 +151,7 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
         case CommandName::MotorsHalt: {
             if(validate_encoder_read(args)) {
                 printf("%s\n", to_string(enumname));
-                robot_stop_all(motion_controller);
+                robot::stop_all();
                 transport::send_command_ok("StopCommand");
             } else {
                 transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
@@ -159,7 +164,7 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
             if(validate_encoder_read(args)) {
                 // printf("%s\n", to_string(enumname));
                 Handle h = tx_pool::allocate();
-                tojson_encoder_samples(motion_controller, h);
+                robot::tojson_encoder_samples(h);
                 transport::send_json_response(&h);
                 // printf("End of read encoder cmd \n");
             } else {

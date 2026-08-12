@@ -5,8 +5,8 @@
 #include <string.h>
 #include <stdint.h>
 #include "trace.h"
-namespace transport {
-namespace buffer {
+
+namespace transport::buffer {
 
     struct Header {
         Header(void *memptr, size_t capacity) {
@@ -132,6 +132,6 @@ namespace buffer {
 
     size_t sb_space_remaining(Handle buffer_h);
 
-} // namespace buffer
-} // namespace transport
+} // namespace transport::buffer
+
 #endif
