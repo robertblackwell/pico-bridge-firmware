@@ -23,9 +23,9 @@ void tojson_one_encoder_sample(transport::buffer::Handle buffer_h, EncoderSample
         //printf("tojson_s_containes_data\n");
         transport::buffer::sb_json_add(buffer_h, "{");
             // transport::buffer::sb_json_add(buffer_h, "\"n\":%p", (void*)sample_ptr);
-            transport::buffer::sb_json_add(buffer_h, " \"ss\":%ld", sample_ptr->s_isr_endtime_us);
+            // transport::buffer::sb_json_add(buffer_h, " \"ss\":%ld", sample_ptr->s_isr_endtime_us);
             // transport::buffer::sb_json_add(buffer_h, ", \"t0\":%llu", sample_ptr->s_isr_starttime_us);
-            transport::buffer::sb_json_add(buffer_h, ", \"tk\":%d", sample_ptr->s_isr_saved_sample_tick_count);
+            // transport::buffer::sb_json_add(buffer_h, ", \"tk\":%d", sample_ptr->s_isr_saved_sample_tick_count);
             transport::buffer::sb_json_add(buffer_h, ", \"et\":%llu", sample_ptr->s_elapsed_usecs);
             transport::buffer::sb_json_add(buffer_h, ", \"ws\":%9.3f", sample_ptr->s_speed_mm_per_second);
             transport::buffer::sb_json_add(buffer_h, ", \"mr\":%9.3f", sample_ptr->s_motor_rpm);

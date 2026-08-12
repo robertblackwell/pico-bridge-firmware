@@ -134,6 +134,16 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
             }
             break;
         }
+        case CommandName::WheelVelocity: {
+            double left_vel, right_vel;
+            if(validate_wheel_velocity(args, left_vel, right_vel)) {
+                robot::set_wheel_velocity_ms(left_vel, right_vel);
+                transport::send_command_ok("WheelVelocity %f  %f", left_vel, right_vel);
+            } else {
+                transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
+            }
+            break;
+        }
         case CommandName::MotorsRpm: {
             double left_rpm, right_rpm;
             if(validate_rpm(args, left_rpm, right_rpm)) {

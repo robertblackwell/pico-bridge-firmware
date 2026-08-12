@@ -15,6 +15,7 @@ namespace robot {
     Encoder* get_encoder(DriveSide side);
     MotionControl::RpmValue get_current_rpm(DriveSide side);
     MotionControl::PwmValue get_current_pwm(DriveSide side);
+
     /*********************************************************************************************
      * functions to validate that pwm and rpm values are within acceptable ranges and
      * are not asking a motor to change direction will rotating
@@ -31,6 +32,7 @@ namespace robot {
      * @param right_pwm_percent
      */
     void set_raw_pwm_percent(double left_pwm_percent, double right_pwm_percent);
+    bool set_wheel_velocity_ms(double left_velocity_target_ms, double right_velocity_target_ms);
 
     /**
      * Sets the pwm for each motor but validates its between -100 .. +100

@@ -17,6 +17,8 @@
 
 #define CLI_COMMAND_MOTOR_RPM           5   // set the speed of motors to an rpm value - two arguments 3500-7500
 #define CLI_COMMAND_MOTOR_SPEED         10  // set the speed of each motor in rpm
+#define CLI_COMMAND_MOTOR_RPM           5   // set the speed of motors to an rpm value - two arguments 3500-7500
+#define CLI_COMMAND_WHEEL_VELOCITY      15  // set the speed of each wheel in meters per sec
 
 #define CLI_COMMAND_TAG_STOP            2   // no arguments
 
@@ -33,6 +35,7 @@ enum class CommandName
     Error = 'x',
     MotorsPwmPercent = 's',
     MotorsRpm = 'r',
+    WheelVelocity = 'v',
     MotorsHalt = 'h',
     PidArgsUpdate = 'u',
     EncodersRead = 'e',
@@ -61,6 +64,9 @@ inline const char* to_string(CommandName en)
         case CommandName::MotorsRpm:
             s =  "MotorsRpm";
             break;
+        case CommandName::WheelVelocity:
+            s =  "WheelVelocity";
+            break;
         case CommandName::MotorsHalt:
             s =  "MotorsHalt";
             break;
@@ -88,6 +94,7 @@ inline const char* to_string(CommandName en)
 CommandName command_lookup(const char* first_arg);
 bool validate_pwm(Argv& args, double& left, double& right);
 bool validate_rpm(Argv& args, double& left, double& right);
+bool validate_wheel_velocity(Argv& args, double& left, double& right);
 bool validate_stop(Argv& args);
 bool validate_echo(Argv& args);
 bool validate_encoder_read(Argv& args);

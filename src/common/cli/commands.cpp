@@ -161,6 +161,18 @@ bool validate_rpm(Argv& args, double& left, double& right)
                 );
     return valid;  
 }
+bool validate_wheel_velocity(Argv& args, double& left, double& right)
+{
+    bool valid = (args.token_count == 3)
+                && argparse_double(args, 1, left)
+                && argparse_double(args, 2, right);
+                // && (
+                //     ((-8000.0 <= left) && (left <= 0.0)) || ((0.0 <= left) && (left <= 8000.0))
+                // ) && (
+                //     ((-8000.0 <= right) && (right <= 0.0)) || ((0.0 <= right) && (right <= 8000.0))
+                // );
+    return valid;
+}
 bool validate_stop(Argv& args)
 {
     bool valid = (args.token_count >= 1);
@@ -201,6 +213,7 @@ CommandName command_lookup(const char* first_arg) {
         {"c",  "echo",    CLI_COMMAND_TAG_ECHO,          CommandName::Echo},
         {"s",  "stop",    CLI_COMMAND_TAG_STOP,          CommandName::MotorsHalt},
         {"w",  "pwm",     CLI_COMMAND_MOTOR_PERCENT_PWM, CommandName::MotorsPwmPercent},
+        {"v",  "vw",      CLI_COMMAND_WHEEL_VELOCITY,    CommandName::WheelVelocity},
 
         {"m",  "motor",   CLI_COMMAND_MOTOR_SPEED,       CommandName::MotorsRpm}, // rpw
         {"r",  "rpm",     CLI_COMMAND_MOTOR_RPM,         CommandName::MotorsRpm},

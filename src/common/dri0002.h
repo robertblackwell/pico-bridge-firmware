@@ -25,7 +25,7 @@ struct PwmPiPico
 	MotorDirection m_direction;
 
 	void begin(uint pwm_pin, uint direction_pin, uint wrap);
-	void set_level(uint level);
+	void set_level(uint level) const;
 	/**
 	 * index is either 1 or 2
 	 * percent is a floating point number -100.0 .. 100.0
@@ -33,9 +33,8 @@ struct PwmPiPico
 	 * +ve pwm_percent means rotate 'forwards' m-pin high
 	 * direction of rotation cannot be changes via a pwm setting using an instance of DRI0002V1_4
 	*/
-	void set_pwm_percent(double percent);
+	void set_pwm_percent(double percent) const;
 	void set_direction(MotorDirection direction);
-	void set_duty_cycle_percent(double percent);
 };
 /**
  * This class is a controller for the DFRobot part DRI0002 V1.4 a dual motor H-Bridge motor controller.
@@ -63,17 +62,17 @@ class DRI0002V1_4
 	 * +ve pwm_percent means rotate 'forwards' m-pin high
 	 * direction of rotation cannot be changes via a pwm setting using an instance of DRI0002V1_4
 	*/
-	void set_pwm_percent(MotorSide side, double percent);
+	void set_pwm_percent(MotorSide side, double percent) const;
 	/**
 	 * direction of the motor is determined by the state of the DRI0002  m1 or m2 pin.
-	 * This code mapds the value of 'bool direction' tp m pin state as:
+	 * This code maps the value of 'bool direction' tp m pin state as:
 	 * true -> m pin high
 	 * false-> m pin low
 	*/
 	// void set_direction_pin_state(MotorSide side, bool direction_pin_state);
-	void set_direction_pin_state(MotorSide side, MotorDirection direction);
+	void set_direction_pin_state(MotorSide side, MotorDirection direction) const;
 	
-	MotorDirection get_direction_pin_state(MotorSide side);
+	[[nodiscard]] MotorDirection get_direction_pin_state(MotorSide side) const;
 	
 	inline PwmPiPico* get_pwmpipico(MotorSide side)
 	{
@@ -94,7 +93,5 @@ class DRI0002V1_4
 	PwmPiPico m_pwm_2;
 	PwmPiPico* m_sides[2];
 	MotorDirection m_direction[2];
-
-
 };
 #endif

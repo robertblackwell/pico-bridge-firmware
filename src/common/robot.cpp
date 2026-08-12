@@ -29,6 +29,16 @@ static DRI0002V1_4 dri0002{
 };
 static Encoder* encoder_left_ptr;
 static Encoder* encoder_right_ptr;
+static double robot_velocity_meters_per_second;
+static double robot_heading_degrees;
+static double robot_position_x;
+static double robot_position_y;
+static double robot_left_rpm_target;
+static double robot_right_rpm_target;
+static double robot_left_wheel_velocity_target_ms;
+static double robot_right_wheel_velocity_target_ms;
+static double robot_velocity_target_ms;
+static double robot_heading_degrees_target;
 static MotionControl motion_controller{};
 
 namespace robot {
@@ -40,7 +50,12 @@ void init()
 
     encoder_left_ptr->start_handling_interrupts();
     encoder_right_ptr->start_handling_interrupts();
-    printf("init leaving encoder_left_ptr: %x encoder_right_ptr:%x \n", encoder_left_ptr, encoder_right_ptr);
+    robot_velocity_meters_per_second = 0.0;
+    robot_heading_degrees = 0.0;
+    robot_position_x = 0.0;
+    robot_position_y = 0.0;
+    robot_left_rpm_target = 0.0;
+    printf("init leaving encoder_left_ptr: %p encoder_right_ptr:%p \n", encoder_left_ptr, encoder_right_ptr);
 }
 Encoder* get_encoder(DriveSide side)
 {
@@ -82,17 +97,16 @@ void set_pwm_percent(double left_pwm_percent, double right_pwm_percent)
 {
     motion_controller.set_pwm_percent(left_pwm_percent, right_pwm_percent);
 }
-bool set_rpm(double left_rpm, double right_rpm)
+bool set_wheel_velocity_ms(const double left_velocity_target_ms, const double right_velocity_target_ms)
 {
-    if(!motion_controller.verify_left_rpm_settable((float)left_rpm)) {
-//        error_msg = "left rpm value invalid probably trying to change direction without stopping";
-        return false;
-    }
-    if(!motion_controller.verify_right_rpm_settable((float)right_rpm)) {
-//        error_msg = "left rpm value invalid probably trying to change direction without stopping";
-        return false;
-    }
-    motion_controller.pid_set_rpm(left_rpm, right_rpm);
+    robot_left_wheel_velocity_target_ms = left_velocity_target_ms;
+    robot_right_wheel_velocity_target_ms = right_velocity_target_ms;
+    return true;
+}
+    bool set_rpm(const double left_rpm, const double right_rpm)
+{
+    robot_left_rpm_target = left_rpm;
+    robot_right_rpm_target = right_rpm;
     return true;
 }
 void stop_all()
@@ -107,12 +121,39 @@ void tojson_encoder_samples(transport::buffer::Handle buffer_h)
 
 static uint64_t last_poll_time_ms;
 static uint64_t poll_interval_ms = 1000;
+struct PiContext {
+    double kp;
+    double ki;
+    double integral;
+    double delta_time_secs;
+};
+static PiContext left_pi_ctx;
+static PiContext right_pi_ctx;
+void   pi_ctx_init(PiContext& ctx, double kp, double ki)
+{
+    ctx.kp = kp;
+    ctx.ki = ki;
+    ctx.integral = 0;
+    ctx.delta_time_secs = 1.00;
+
+}
+double pi_wheel_speed_control_next_pwm_estimate(PiContext& ctx, const double target, const double latest)
+{
+    auto error = target - latest;
+    ctx.integral = ctx.integral + (error * ctx.delta_time_secs);
+    auto newpwm = ctx.kp * error + ctx.ki * ctx.integral;
+    printf("pi_wheel_speed_control_next_pwm_estimate: target %f\n\t latest: %f\n\terror: %f\n\tEi: %f\n\tnewpwm: %f \n", target, latest, error, ctx.integral, newpwm);
+    return (newpwm > 100.0) ? 100.0 : newpwm;
+}
+
 void start()
 {
     const auto abs_time = get_absolute_time();
     last_poll_time_ms = to_ms_since_boot(abs_time);
     encoder_left_ptr->m_previous_sample_time_usecs = to_us_since_boot(abs_time);
     encoder_right_ptr->m_previous_sample_time_usecs = encoder_left_ptr->m_previous_sample_time_usecs;
+    pi_ctx_init(left_pi_ctx, 90.0, 650.0);
+    pi_ctx_init(right_pi_ctx, 90.0, 650.0);
 }
 void poll()
 {   
@@ -125,6 +166,21 @@ void poll()
             encoder_right_ptr->m_sample);
 
         last_poll_time_ms = now;
+        const EncoderSample& sleft = encoder_left_ptr->m_sample;
+        const EncoderSample& sright = encoder_right_ptr->m_sample;
+
+        robot_velocity_meters_per_second = 0.5 * (sleft.s_speed_mm_per_second + sright.s_speed_mm_per_second);
+        robot_heading_degrees = (sright.s_speed_mm_per_second - sleft.s_speed_mm_per_second) / ISR_AXLE_LENGTH_MM;
+        double left_new_pwm = pi_wheel_speed_control_next_pwm_estimate(left_pi_ctx, robot_left_wheel_velocity_target_ms, (sleft.s_speed_mm_per_second/1000.0));
+        double right_new_pwm = pi_wheel_speed_control_next_pwm_estimate(right_pi_ctx, robot_right_wheel_velocity_target_ms, (sright.s_speed_mm_per_second/1000.0));
+        printf("left_new_pwm: %f\n", left_new_pwm);
+        printf("right_new_pwm: %f\n", right_new_pwm);
+        motion_controller.set_raw_pwm_percent(left_new_pwm, right_new_pwm);
+
+
+        printf("Robot twist vel mm/sec: %f theta (radians/sec): %f\n", robot_velocity_meters_per_second, robot_heading_degrees);
+        printf("Robot rpm_left: %f rpm_right: %f \n", sleft.s_wheel_rpm, sright.s_wheel_rpm);
+        printf("Robot vel_left(m/s): %f vel_right(m/s): %f \n", (sleft.s_speed_mm_per_second/1000.0), (sright.s_speed_mm_per_second/1000.0));
         // transport::buffer::Handle h = transport::buffer::tx_pool::allocate();
         // tojson_two_encoder_samples(h, &encoder_left_ptr->m_sample, &encoder_right_ptr->m_sample);
         // transport::send_json_response(&h);

@@ -41,13 +41,10 @@ struct EncoderSample
     double      s_wheel_rpm;
     double      s_wheel_rps;
     double      s_speed_mm_per_second;
-    EncoderSample() 
+    double      s_wheel_travel_mm;
+    double      s_heading_change_radians;
+    EncoderSample()
     {
-        s_isr_starttime_us = 0;
-        s_isr_endtime_us = 0;
-        s_isr_saved_sample_tick_count = 0;
-        s_isr_saved_lifetime_tick_count = 0;
-
         s_contains_data = false;
         s_motor_rpm = 0.0;
         s_wheel_rpm = 0.0;
@@ -56,14 +53,11 @@ struct EncoderSample
         s_musecs_per_motor_revolution = 0.0;
         s_elapsed_usecs = 0;
         s_wheel_rps = 0.0;
+        s_wheel_travel_mm = 0.0;
+        s_heading_change_radians = 0.0;
     }
     void reset()
     {
-        s_isr_starttime_us = 0;
-        s_isr_endtime_us = 0;
-        s_isr_saved_sample_tick_count = 0;
-        s_isr_saved_lifetime_tick_count = 0;
-
         s_contains_data = false;
         s_motor_rpm = 0.0;
         s_wheel_rpm = 0.0;
@@ -72,12 +66,13 @@ struct EncoderSample
         s_musecs_per_motor_revolution = 0.0;
         s_elapsed_usecs = 0;
         s_wheel_rps = 0.0;
+        s_wheel_travel_mm = 0.0;
+        s_heading_change_radians = 0.0;
     }
     void dump()
     {
         print_fmt("EncoderSampel addr: %p", (void*)this);
         print_fmt("   s_contains_data              : %d", (int)s_contains_data);
-        print_fmt("   s_isr_saved_sample_tick_count: %ld", s_isr_saved_sample_tick_count);
         print_fmt("   s_elapsed_usecs              : %llu", s_elapsed_usecs);
         print_fmt("   s_motor_rpm                  : %f", s_motor_rpm);
         print_fmt("   s_wheel_rpm                  : %f", s_wheel_rpm);
