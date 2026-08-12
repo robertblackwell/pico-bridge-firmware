@@ -71,24 +71,6 @@ inline MotionControl::PwmValue get_current_pwm(DriveSide side)
     if(side == DriveSide::left) return motion_controller.m_left_current_pwm;
     return motion_controller.m_right_current_pwm;
 }
-inline bool verify_side_rpm_settable(DriveSide side, float rpm)
-{
-    // MotionControl::RpmValue new_request{rpm};
-    // auto current_rpm = get_current_rpm(mc, side);
-    // if((! new_request.is_zero()) && (! current_rpm.is_zero())) {
-    //     return (new_request.direction() == current_rpm.direction());
-    // }
-    return true;
-}
-inline bool verify_side_pwm_settable(DriveSide side, float pwm)
-{
-    // MotionControl::RpmValue new_request{pwm};
-    // auto current_pwm = get_current_pwm(mc, side);
-    // if((! new_request.is_zero()) && (! current_pwm.is_zero())) {
-    //     return (new_request.direction() == current_pwm.direction());
-    // }
-    return true;
-}
 void set_raw_pwm_percent(double left_pwm_percent, double right_pwm_percent)
 {
     motion_controller.set_raw_pwm_percent(left_pwm_percent, right_pwm_percent);
@@ -103,7 +85,7 @@ bool set_wheel_velocity_ms(const double left_velocity_target_ms, const double ri
     robot_right_wheel_velocity_target_ms = right_velocity_target_ms;
     return true;
 }
-    bool set_rpm(const double left_rpm, const double right_rpm)
+bool set_rpm(const double left_rpm, const double right_rpm)
 {
     robot_left_rpm_target = left_rpm;
     robot_right_rpm_target = right_rpm;
@@ -120,31 +102,9 @@ void tojson_encoder_samples(transport::buffer::Handle buffer_h)
 }
 
 static uint64_t last_poll_time_ms;
-static uint64_t poll_interval_ms = 1000;
-struct PiContext {
-    double kp;
-    double ki;
-    double integral;
-    double delta_time_secs;
-};
-static PiContext left_pi_ctx;
-static PiContext right_pi_ctx;
-void   pi_ctx_init(PiContext& ctx, double kp, double ki)
-{
-    ctx.kp = kp;
-    ctx.ki = ki;
-    ctx.integral = 0;
-    ctx.delta_time_secs = 1.00;
-
-}
-double pi_wheel_speed_control_next_pwm_estimate(PiContext& ctx, const double target, const double latest)
-{
-    auto error = target - latest;
-    ctx.integral = ctx.integral + (error * ctx.delta_time_secs);
-    auto newpwm = ctx.kp * error + ctx.ki * ctx.integral;
-    printf("pi_wheel_speed_control_next_pwm_estimate: target %f\n\t latest: %f\n\terror: %f\n\tEi: %f\n\tnewpwm: %f \n", target, latest, error, ctx.integral, newpwm);
-    return (newpwm > 100.0) ? 100.0 : newpwm;
-}
+static uint64_t poll_interval_ms = SCL_LOOP_INTERVAL_MS;
+static SpeedControl left_speed_control;
+static SpeedControl right_speed_control;
 
 void start()
 {
@@ -152,8 +112,8 @@ void start()
     last_poll_time_ms = to_ms_since_boot(abs_time);
     encoder_left_ptr->m_previous_sample_time_usecs = to_us_since_boot(abs_time);
     encoder_right_ptr->m_previous_sample_time_usecs = encoder_left_ptr->m_previous_sample_time_usecs;
-    pi_ctx_init(left_pi_ctx, 90.0, 650.0);
-    pi_ctx_init(right_pi_ctx, 90.0, 650.0);
+    left_speed_control.init( SCL_PI_Kp, SCL_PI_Ki);
+    right_speed_control.init( SCL_PI_Kp , SCL_PI_Ki);
 }
 void poll()
 {   
@@ -171,8 +131,8 @@ void poll()
 
         robot_velocity_meters_per_second = 0.5 * (sleft.s_speed_mm_per_second + sright.s_speed_mm_per_second);
         robot_heading_degrees = (sright.s_speed_mm_per_second - sleft.s_speed_mm_per_second) / ISR_AXLE_LENGTH_MM;
-        double left_new_pwm = pi_wheel_speed_control_next_pwm_estimate(left_pi_ctx, robot_left_wheel_velocity_target_ms, (sleft.s_speed_mm_per_second/1000.0));
-        double right_new_pwm = pi_wheel_speed_control_next_pwm_estimate(right_pi_ctx, robot_right_wheel_velocity_target_ms, (sright.s_speed_mm_per_second/1000.0));
+        const double left_new_pwm = left_speed_control.next_pwm_estimate(robot_left_wheel_velocity_target_ms, (sleft.s_speed_mm_per_second/1000.0));
+        const double right_new_pwm = right_speed_control.next_pwm_estimate(robot_right_wheel_velocity_target_ms, (sright.s_speed_mm_per_second/1000.0));
         printf("left_new_pwm: %f\n", left_new_pwm);
         printf("right_new_pwm: %f\n", right_new_pwm);
         motion_controller.set_raw_pwm_percent(left_new_pwm, right_new_pwm);

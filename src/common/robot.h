@@ -4,11 +4,48 @@
 #include "dri0002.h"
 #include "encoder_v2.h"
 #include "motion.h"
+#include "speed_control.h"
 
 namespace robot {
+    /**
+     * Initializes all the data structures representing the hardware. All this is hidden inside robot::init
+     */
     void init();
+
+    /**
+     * Starts encoder isr processing together with speed control loop if one is configured into the build
+     */
     void start();
+
+    /**
+     * Must be called frequently in the main loop so that speed control data can be collected from
+     * encoder isr's and speed control loop can process updates.
+     */
     void poll();
+
+    /**
+    * Sets the pwm for each motor but validates its between -100 .. +100
+    * and that neither motor is being asks to change direction without going through zero.
+    * @param left_pwm_percent
+    * @param right_pwm_percent
+    */
+    void set_pwm_percent(double left_pwm_percent, double right_pwm_percent);
+
+    /**
+     * Set a target wheel velocities. Relies on the speed controller to achive the targets.
+     * Action on this call may not happen until the next speed control loop
+     * @param left_velocity_target_ms
+     * @param right_velocity_target_ms
+     * @return
+     */
+    bool set_wheel_velocity_ms(double left_velocity_target_ms, double right_velocity_target_ms);
+
+    /**
+    * Is the equivalent of set_raw_pwm(0.0, 0.0)
+    * In addition sets wheel velocity targets to zero.
+    */
+    void stop_all();
+
     /*********************************************************************************************
      * Accessing the left and right side of the drive
      ***********************************************************************************************/
@@ -18,7 +55,7 @@ namespace robot {
 
     /*********************************************************************************************
      * functions to validate that pwm and rpm values are within acceptable ranges and
-     * are not asking a motor to change direction will rotating
+     * are not asking a motor to change direction while rotating
      ***********************************************************************************************/
     bool verify_side_rpm_settable(DriveSide side, float rpm);
     bool verify_side_pwm_settable(DriveSide side, float pwm);
@@ -32,15 +69,7 @@ namespace robot {
      * @param right_pwm_percent
      */
     void set_raw_pwm_percent(double left_pwm_percent, double right_pwm_percent);
-    bool set_wheel_velocity_ms(double left_velocity_target_ms, double right_velocity_target_ms);
 
-    /**
-     * Sets the pwm for each motor but validates its between -100 .. +100
-     * and that neither motor is being asks to change direction without going through zero.
-     * @param left_pwm_percent
-     * @param right_pwm_percent
-     */
-    void set_pwm_percent(double left_pwm_percent, double right_pwm_percent);
     /**
      * Set the desired rpm for each motor.
      * validation:
@@ -56,30 +85,6 @@ namespace robot {
      */
     bool set_rpm(double left_rpm, double right_rpm);
 
-    /**
-     * Is the equivalent of set_raw_pwm(0.0, 0.0);
-     */
-    void stop_all();
-
-    #if 0
-    /***************************************************************************************************************
-     *  Encoder sample collection - builds kinematic state of robot
-     ***************************************************************************************************************/
-    /**
-     * Setup a repeating timer to examine and save the values from the encoder isr function every sample_interval_us
-     *
-     * @param sample_interval_us
-     */
-    void start_encoder_sample_collection(uint64_t sample_interval_us);
-
-    /**
-     * Performs the same function as the timer callback that is setup in the previous function
-     * `start_encoder_sample_collection()`.
-     *
-     * These should not both be used as they conflict.
-     */
-    void collect_encoder_samples();
-    #endif
     /***************************************************************************************************************
      * json formatting
      * @TODO should probably be somewhere els

@@ -132,7 +132,11 @@
 #define ISR_WHEEL_DIAMETER_MM 70.0
 #define ISR_AXLE_LENGTH_MM 235.0
 
+/**
+ * Speed control config
+ */
+#define SCL_LOOP_INTERVAL_MS 1000
+#define SCL_PI_Kp 90.0
+#define SCL_PI_Ki 650.0
 
-
-#endif
 #endif
