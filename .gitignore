@@ -6,3 +6,19 @@ cmake-build-debug/
 **/junk/
 python/dashboard 
 src-saved
+
+# CMake build artifacts
+CMakeFiles/
+**/CMakeFiles/
+CMakeCache.txt
+**/CMakeCache.txt
+cmake_install.cmake
+**/cmake_install.cmake
+Makefile
+**/Makefile
+CTestTestfile.cmake
+**/CTestTestfile.cmake
+Testing/
+**/Testing/
+_deps/
+**/_deps/
