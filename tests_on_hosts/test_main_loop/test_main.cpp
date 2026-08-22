@@ -20,7 +20,7 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
-int test_01() {
+static int test_01() {
     void* p;
     transport::buffer::Handle bh = transport::buffer::tx_pool::allocate();
     int x = 3;
@@ -28,7 +28,8 @@ int test_01() {
     UT_EQUAL_INT(x, 3);
     return 0;
 }
-int test_02() {
+
+static int test_02() {
     EncoderSample sleft{};
     sleft.s_contains_data = true;
     sleft.s_pin_state = "F";

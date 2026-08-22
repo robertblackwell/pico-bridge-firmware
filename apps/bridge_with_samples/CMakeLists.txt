@@ -1,6 +1,5 @@
 add_executable(bridge_with_samples 
     bridge_with_samples.cpp
-    ${COMMON_SOURCE_FILES}
 )
 target_include_directories(bridge_with_samples PRIVATE 
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -16,4 +15,4 @@ target_compile_definitions(bridge_with_samples
 pico_enable_stdio_usb(bridge_with_samples 1)
 pico_enable_stdio_uart(bridge_with_samples 0)
 pico_add_extra_outputs(bridge_with_samples)
-target_link_libraries(bridge_with_samples pico_stdlib hardware_gpio hardware_pwm hardware_sync)
+target_link_libraries(bridge_with_samples PRIVATE common_logic pico_stdlib hardware_sync)

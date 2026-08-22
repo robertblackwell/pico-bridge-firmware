@@ -1,6 +1,10 @@
 #ifndef iracoon_unittest_h
 #define iracoon_unittest_h
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,7 +36,7 @@ extern "C" {
 #define    BRIGHT_WHITE(string)      "\x1b[37;1m" string  "\x1b[0m"
 
 typedef int(UTFunction)();
-#define UT_MAX_MSG_SIZE 256
+#define UT_MAX_MSG_SIZE 512
 
 typedef struct {
     const char* fn_name;

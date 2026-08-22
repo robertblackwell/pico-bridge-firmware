@@ -80,8 +80,9 @@ void UTRecordAssertResult(const char* fn, const char* file, int line, const char
 {
     // only asserts are to be running from multiple threads
     pthread_mutex_lock(&ut_lock);
-    UTAssertResultRef arref = malloc(sizeof(UTAssertResult));
-    strcpy(arref->msg, msg);
+    UTAssertResultRef arref = (UTAssertResultRef)malloc(sizeof(UTAssertResult));
+    strncpy(arref->msg, msg, UT_MAX_MSG_SIZE - 1);
+    arref->msg[UT_MAX_MSG_SIZE - 1] = '\0';
     arref->fn_name = fn;
     arref->file_name = file;
     ut_assert_table[ut_assert_count] = arref;

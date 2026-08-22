@@ -1,0 +1,1 @@
+/usr/bin/arm-none-eabi-g++ -mcpu=cortex-m0plus -mthumb -mfloat-abi=soft -Og -g -Wl,--build-id=none -lstdc++exp CMakeFiles/test_wheel_speed.dir/test_wheel_speed.cpp.o CMakeFiles/test_wheel_speed.dir/__/common/unittest.c.o -o test_wheel_speed.elf

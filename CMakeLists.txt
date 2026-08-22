@@ -32,46 +32,7 @@ MESSAGE("BRANCH_HASH  [${BRANCH_HASH}]")
 
 pico_sdk_init()
 add_link_options("-lstdc++exp")
-set(COMMON_SOURCE_FILES 
-    ${COMMON_SRC_DIR}/cli/argv.cpp
-    ${COMMON_SRC_DIR}/cli/argv.h
-    ${COMMON_SRC_DIR}/cli/commands.h
-    ${COMMON_SRC_DIR}/cli/commands.cpp
-    # ${COMMON_SRC_DIR}/cli/execute_commands.cpp
-
-    ${COMMON_SRC_DIR}/enum.cpp
-    ${COMMON_SRC_DIR}/enum.h
-    ${COMMON_SRC_DIR}/trace.cpp
-    ${COMMON_SRC_DIR}/trace.h
-    ${COMMON_SRC_DIR}/dri0002.h
-    ${COMMON_SRC_DIR}/dri0002.cpp
-    ${COMMON_SRC_DIR}/encoder_v2.h
-    ${COMMON_SRC_DIR}/encoder_v2.cpp
-    ${COMMON_SRC_DIR}/encoder_sample.h
-    ${COMMON_SRC_DIR}/encoder_sample.cpp
-    ${COMMON_SRC_DIR}/pico_gpio_irq_dispatcher.h
-    ${COMMON_SRC_DIR}/pico_gpio_irq_dispatcher.cpp
-    ${COMMON_SRC_DIR}/motion.h
-    ${COMMON_SRC_DIR}/motion.cpp
-    ${COMMON_SRC_DIR}/reporter.cpp
-    ${COMMON_SRC_DIR}/reporter.h
-    ${COMMON_SRC_DIR}/robot.h
-    ${COMMON_SRC_DIR}/robot.cpp
-    ${COMMON_SRC_DIR}/speed_control.h
-
-    ${COMMON_SRC_DIR}/task.h
-
-    ${COMMON_SRC_DIR}/transport/buffers.h
-    ${COMMON_SRC_DIR}/transport/buffers.cpp
-    ${COMMON_SRC_DIR}/transport/transmit_buffer_pool.h
-    ${COMMON_SRC_DIR}/transport/transmit_buffer_pool.cpp
-    ${COMMON_SRC_DIR}/transport/transport.h
-    ${COMMON_SRC_DIR}/transport/transport.cpp
-    ${COMMON_SRC_DIR}/transport/transport_reader.cpp
-
-    ${COMMON_SRC_DIR}/pid.h
-    ${COMMON_SRC_DIR}/pid.cpp
-)
+add_subdirectory(src/common)
 
 set(PICO_ROBOT_PATH ${PROJECT_SOURCE_DIR})
 
@@ -95,4 +56,7 @@ add_subdirectory(apps/bridge_with_samples)
 # add_subdirectory(apps/test_transport)
 
 # add_subdirectory(apps/onboard_pid)
+
+message(STATUS "Adding host-side tests to project model")
+add_subdirectory(tests_on_hosts)
 

@@ -1,6 +1,5 @@
 add_executable(bridge 
     bridge.cpp
-    ${COMMON_SOURCE_FILES}
 )
 target_include_directories(bridge PRIVATE 
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -16,4 +15,4 @@ target_compile_definitions(bridge
 pico_enable_stdio_usb(bridge 1)
 pico_enable_stdio_uart(bridge 0)
 pico_add_extra_outputs(bridge)
-target_link_libraries(bridge pico_stdlib hardware_gpio hardware_pwm hardware_sync)
+target_link_libraries(bridge PRIVATE common_logic pico_stdlib hardware_sync)

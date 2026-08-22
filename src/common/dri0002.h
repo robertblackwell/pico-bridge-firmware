@@ -2,7 +2,11 @@
 #define H_dri0002v1_4_h
 #include <cstdio>
 #include <cstdint>
-#include <pico/types.h>
+#ifdef PLATFORM_IS_LINUX
+    typedef unsigned int uint;
+#else
+    #include <pico/types.h>
+#endif
 #include <enum.h>
 
 /**

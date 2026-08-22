@@ -4,8 +4,12 @@
 // #include <pico/stdlib.h>
 // #include <stdio.h>
 #include <stdint.h>
-#include <pico/types.h>
-#include <pico/time.h>
+#ifdef PLATFORM_IS_LINUX
+    typedef unsigned int uint;
+#else
+    #include <pico/types.h>
+    #include <pico/time.h>
+#endif
 
 #define MAX_PICO_IRQ_HANDLERS 5
 class PicoGpioIrqDispatcher

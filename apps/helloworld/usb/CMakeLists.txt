@@ -1,10 +1,10 @@
 if (TARGET tinyusb_device)
     add_executable(hello_usb
-            hello_usb.c
-            )
+    hello_usb.c
+)
 
-    # pull in common dependencies
-    target_link_libraries(hello_usb pico_stdlib)
+# pull in common dependencies
+target_link_libraries(hello_usb PRIVATE common_logic pico_stdlib)
 
     # enable usb output, disable uart output
     pico_enable_stdio_usb(hello_usb 1)
