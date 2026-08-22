@@ -1,9 +1,8 @@
 #ifndef H_dri0002v1_4_h
 #define H_dri0002v1_4_h
-#include <stdio.h>
-#include <stdint.h>
+#include <cstdio>
+#include <cstdint>
 #include <pico/types.h>
-#include <config.h>
 #include <enum.h>
 
 /**
@@ -46,6 +45,16 @@ struct PwmPiPico
  * 
  * Mn controls whether the motor will turn forwards or backwards - that is direction
  * En is driven by a pwm signal to control motor speed
+ *
+ * NOTE - how the direction direction of rotation of motors is handled
+ * ====================================================================
+ * For a differential drive robot to go forward one motor must turn forward(clockwise) and the other
+ * must turn backwards(counter clockwise). In the robot controlled by this code this "opposite" direction
+ * requirement is handled in the polarity of the wiring between the motor and the DRI0002.
+ *
+ * The software should set both direction Mn pins to '1' for the robot to go forward and both direction pins to '0'
+ * for the robot to go backwards. That is forward and backwards are handled the same way on both motors.
+
  * 
 */
 class DRI0002V1_4
@@ -73,12 +82,13 @@ class DRI0002V1_4
 	void set_direction_pin_state(MotorSide side, MotorDirection direction) const;
 	
 	[[nodiscard]] MotorDirection get_direction_pin_state(MotorSide side) const;
-	
-	inline PwmPiPico* get_pwmpipico(MotorSide side)
+	[[nodiscard]] MotorDirection get_direction(MotorSide side) const;
+
+	inline PwmPiPico* get_pwmpipico(const MotorSide side)
 	{
 		return (side == MotorSide::left) ? &m_pwm_1: &m_pwm_2;
 	}
-	inline PwmPiPico* get_pwm_pico(MotorSide side)
+	inline PwmPiPico* get_pwm_pico(const MotorSide side)
 	{
 		return (side == MotorSide::left) ? &m_pwm_1: &m_pwm_2;
 	}

@@ -135,8 +135,10 @@
 /**
  * Speed control config
  */
-#define SCL_LOOP_INTERVAL_MS 1000
-#define SCL_PI_Kp 90.0
-#define SCL_PI_Ki 650.0
-
+#define SCL_LOOP_INTERVAL_MS 100 //250 //500 //1000
+#define SCL_PI_Kp 20.0 //40.0 //70.0 //90.0
+#define SCL_PI_Ki 550 //650.0
+#define SCL_MIN_VELOCITY (0.0001)
+#define SCL_MAX_VELOCITY (0.1)
+#endif
 #endif

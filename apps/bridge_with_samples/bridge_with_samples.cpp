@@ -136,7 +136,7 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
         }
         case CommandName::WheelVelocity: {
             double left_vel, right_vel;
-            if(validate_wheel_velocity(args, left_vel, right_vel)) {
+            if(validate_wheel_velocity( args, left_vel, right_vel)) {
                 robot::set_wheel_velocity_ms(left_vel, right_vel);
                 transport::send_command_ok("WheelVelocity %f  %f", left_vel, right_vel);
             } else {

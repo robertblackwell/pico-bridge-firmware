@@ -123,18 +123,18 @@ void MotionControl::pid_set_rpm(double left_rpm, double right_rpm) {
 	set_rpm_one_side(DriveSide::left, RpmValue{left_rpm});
 	set_rpm_one_side(DriveSide::right, RpmValue{right_rpm});
 }
-void MotionControl::set_raw_pwm_percent(double percent_1, double percent_2) const
+void MotionControl::set_raw_pwm_percent(const double percent_1, const double percent_2) const
 {
     FTRACE("Motion::set_pwm_percent percent_1: %f percent_2: %f\n", percent_1, percent_2);
-	MotorDirection dl = (percent_1 > 0.0) ? MotorDirection::forward : MotorDirection::backwards;
-	MotorDirection dr = (percent_2 > 0.0) ? MotorDirection::forward : MotorDirection::backwards;
+	const MotorDirection dl = (percent_1 > 0.0) ? MotorDirection::forward : MotorDirection::backwards;
+	const MotorDirection dr = (percent_2 > 0.0) ? MotorDirection::forward : MotorDirection::backwards;
 	FTRACE("dl %s dr %s \n", motor_direction_to_string(dl), motor_direction_to_string(dr))
 	m_dri0002_ptr->set_direction_pin_state(DriveSide ::left, dl);
 	m_dri0002_ptr->set_direction_pin_state(DriveSide ::right, dr);
     m_dri0002_ptr->set_pwm_percent(DriveSide ::left, fabs(percent_1));
     m_dri0002_ptr->set_pwm_percent(DriveSide ::right, fabs(percent_2));
 }
-void MotionControl::set_pwm_percent(double percent_1, double percent_2) const
+void MotionControl::set_pwm_percent(const double percent_1, const double percent_2) const
 {
     FTRACE("Motion::set_pwm_percent percent_1: %f percent_2: %f\n", percent_1, percent_2);
     m_dri0002_ptr->set_pwm_percent(DriveSide ::left, (percent_1 >= 0.00) ? percent_1 : -percent_1);

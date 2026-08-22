@@ -47,7 +47,12 @@ void Reporter::run()
 		FTRACE("reporter::run m_number_required: %d m_count: %d\n", m_number_required, m_count);
 		m_last_report_time_since_boot_ms = now;
         transport::buffer::Handle buffer_h = transport::buffer::tx_pool::allocate();
-        Encoder::unsafe_collect_two_encoder_samples(*m_encoder_left_ptr, (m_encoder_left_ptr->m_sample), *m_encoder_right_ptr, m_encoder_right_ptr->m_sample);
+        Encoder::unsafe_collect_two_encoder_samples(
+        	*m_encoder_left_ptr, (m_encoder_left_ptr->m_sample),
+        	robot::get_motor_direction(MotorSide::left),
+        	*m_encoder_right_ptr, m_encoder_right_ptr->m_sample,
+        	robot::get_motor_direction(MotorSide::right)
+        	);
         tojson_two_encoder_samples(buffer_h, &m_encoder_left_ptr->m_sample, &m_encoder_right_ptr->m_sample);
         transport::send_json_response(&buffer_h);
 		m_count++;

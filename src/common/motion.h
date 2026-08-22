@@ -14,8 +14,9 @@ void dump_config(MotionControl* mp);
 /**
  * NOTE: left and right motors need to rotate in oposite direction to go straight.
  */
-struct MotionControl
+class MotionControl
 {
+public:
     template<const int MIN, const int MAX>
     struct FloatValue
     {
@@ -33,24 +34,20 @@ struct MotionControl
             m_value = v.m_value;
             return *this;
         }
-        double signed_value()
-        {
+        [[nodiscard]] double signed_value() const {
             return m_value;
         }
-        double abs_value()
-        {
+        [[nodiscard]] double abs_value() const {
             return fabs(m_value);
         }
         [[nodiscard]] double raw_double_value() const{
             return (double) m_value;
         }
-        inline MotorDirection direction()
-        {
+        [[nodiscard]] MotorDirection direction() const {
             return (m_value < 0.0) ? MotorDirection::backwards: MotorDirection::forward;
         }
-        inline bool is_zero()
-        {
-            return (((-1.0*(double)MIN) < m_value) && (m_value < (double)MIN));
+        [[nodiscard]] bool is_zero() const {
+            return (((-1.0*static_cast<double>(MIN)) < m_value) && (m_value < static_cast<double>(MIN)));
         }
     };
     using RpmValue = FloatValue<PID_RPM_INT_MIN, PID_RPM_INT_MAX>;
@@ -88,8 +85,7 @@ struct MotionControl
     /**
      * Get either the left or right encoder ptr
      */
-    inline Encoder* encoder_ptr(DriveSide side)
-    {
+    [[nodiscard]] Encoder* encoder_ptr(DriveSide side) const {
         return (side == DriveSide::left) ? m_left_encoder_ptr : m_right_encoder_ptr;
     }
 
@@ -104,7 +100,7 @@ struct MotionControl
     /**
      * Get from dri0002 the PwmPiPico instance responsible for either the left or right motor
      */
-    [[nodiscard]] inline PwmPiPico* get_pwm_pipico_ptr(DriveSide side) const
+    [[nodiscard]] PwmPiPico* get_pwm_pipico_ptr(DriveSide side) const
     {
         return m_dri0002_ptr->get_pwm_pico(side);
     }

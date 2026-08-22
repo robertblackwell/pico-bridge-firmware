@@ -45,6 +45,7 @@ namespace robot {
     * In addition sets wheel velocity targets to zero.
     */
     void stop_all();
+    MotorDirection get_motor_direction(MotorSide side);
 
     /*********************************************************************************************
      * Accessing the left and right side of the drive

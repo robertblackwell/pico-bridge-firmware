@@ -50,11 +50,11 @@ struct SpeedControl
     double m_integral;
     double m_delta_time_secs;
 public:
-	void   init(double kp, double ki)
+	void   init(double kp, const double ki, double delta_time_secs)
 	{
 		m_ki = ki;
 		m_integral = 0;
-		m_delta_time_secs = 1.00;
+		m_delta_time_secs = delta_time_secs;
 	}
 	double next_pwm_estimate(const double target_velocity, const double latest_velocity)
 	{

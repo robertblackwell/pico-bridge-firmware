@@ -15,12 +15,6 @@ struct EncoderSample
     uint32_t s_isr_bpin_prev_count;
     uint32_t s_isr_bpin_count;
 
-    // these values are captured from the isr with interrupts off
-    // uint64_t            s_isr_starttime_us;
-    // uint64_t            s_isr_endtime_us;
-    // uint64_t            s_isr_saved_lifetime_tick_count;
-    // uint32_t            s_isr_saved_sample_tick_count;
-    
     bool        s_contains_data;
     uint64_t    s_sample_interval_usecs;
     uint32_t    s_sample_tick_count;
@@ -37,6 +31,8 @@ struct EncoderSample
     void*       s_encoder_addr{};
     double      s_musecs_per_interrupt;
     double      s_musecs_per_motor_revolution;
+    double      s_motor_revs;
+    double      s_wheel_revs;
     double      s_motor_rpm;
     double      s_wheel_rpm;
     double      s_wheel_rps;

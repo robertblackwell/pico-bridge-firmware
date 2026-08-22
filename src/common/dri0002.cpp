@@ -78,6 +78,7 @@ void PwmPiPico::set_direction(const MotorDirection direction)
 	// }
 }
 
+
 DRI0002V1_4::DRI0002V1_4(){ /*NOLINT*/ }
 DRI0002V1_4::DRI0002V1_4(const uint e1m1_side_index, const int pwm_E1_pin, int pin_M1, const uint e2m2_side_index, const int pwm_E2_pin, const int direction_M2_pin) {	//NOLINT
 	begin(e1m1_side_index, pwm_E1_pin, pin_M1, e2m2_side_index, pwm_E2_pin, direction_M2_pin);
@@ -135,6 +136,11 @@ void DRI0002V1_4::set_direction_pin_state(const MotorSide side, const MotorDirec
 
 MotorDirection DRI0002V1_4::get_direction_pin_state(const MotorSide side) const {
 	const uint local_index = side2index(side);
-	ASSERT_PRINTF((((0 <= local_index) && (local_index <= 1))), "DRI0002 - set_pwm_percent index out of range %d ", local_index);
+	ASSERT_PRINTF((((0 <= local_index) && (local_index <= 1))), "DRI0002 - get_direction_pin_state %d ", local_index);
+	return m_sides[local_index]->m_direction;
+}
+MotorDirection DRI0002V1_4::get_direction(const MotorSide side) const {
+	const uint local_index = side2index(side);
+	ASSERT_PRINTF((((0 <= local_index) && (local_index <= 1))), "DRI0002 - get direction %d ", local_index);
 	return m_sides[local_index]->m_direction;
 }

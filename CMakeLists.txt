@@ -57,6 +57,8 @@ set(COMMON_SOURCE_FILES
     ${COMMON_SRC_DIR}/reporter.h
     ${COMMON_SRC_DIR}/robot.h
     ${COMMON_SRC_DIR}/robot.cpp
+    ${COMMON_SRC_DIR}/speed_control.h
+
     ${COMMON_SRC_DIR}/task.h
 
     ${COMMON_SRC_DIR}/transport/buffers.h
