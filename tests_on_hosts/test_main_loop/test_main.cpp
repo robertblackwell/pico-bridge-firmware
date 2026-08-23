@@ -13,7 +13,7 @@
 #include "cli/commands.h"
 #include "transport/buffers.h"
 #include <encoder_sample.h>
-#include <encoder.h>
+#include <encoder_v2.h>
 #include "transport/transport.h"
 #include "transport/transmit_buffer_pool.h"
 #include <robot.h>
@@ -23,7 +23,7 @@
 static int test_01() {
     void* p;
     transport::buffer::Handle bh = transport::buffer::tx_pool::allocate();
-    int x = 3;
+    constexpr int x = 3;
     transport::buffer::sb_sprintf(bh, "This is a message %d %f\n", 33, 44.0);
     UT_EQUAL_INT(x, 3);
     return 0;
@@ -51,29 +51,30 @@ static int test_02() {
     
     transport::buffer::Handle tbp = transport::buffer::tx_pool::allocate();
 
-    tojson_two_encoder_samples(tbp, sleft, sright);
+    tojson_two_encoder_samples(tbp, &sleft, &sright);
     transport::send_command_error("");
     transport::send_command_ok("");
     transport::send_json_response(&tbp);
 
     return 0;
 }
-
+// NOLINTBEGIN(misc-use-internal-linkage)
 const char* input[] = {"aaaa bb", "bbb ccc", "c dddd \n"};
 const char* saved_p = (input[0]);
 bool get_char_if_available(int* char_received) {
-    if(*saved_p != (char)0) {
-        char ch = *saved_p;
+    if(*saved_p != static_cast<char>(0)) {
+        const char ch = *saved_p;
         saved_p++;
-        *char_received = (int)ch;
+        *char_received = static_cast<int>(static_cast<unsigned char>(ch));
         return true;
     } else {
         saved_p++;
         return false;
     }
 }
+// NOLINTEND(misc-use-internal-linkage)
 
-int test_03() {
+static int test_03() {
     const char* test_input[] = {"aaaa b", "bbbb ", "c12ccc d", "ddd \n"};
     saved_p = (test_input[0]);
     transport::Reader tpreader{};
@@ -93,11 +94,13 @@ int test_03() {
         } 
     }
 }
-int test_04() {
+
+static int test_04() {
     const char* test_input[] = {"aaaa 1", "2345 ", "-128 12", ".0786 ", "-98.7654", " \n"};
     saved_p = (test_input[0]);
     transport::Reader tpreader{};
-    while(1) {
+    tpreader.begin();
+    while(true) {
         tpreader.run();
         if(tpreader.available()) {
             transport::buffer::Handle bh = tpreader.borrow_buffer();
@@ -108,28 +111,28 @@ int test_04() {
             UT_EQUAL_CSTR(args.token_at(1), "12345")
             {
                 int i = 0;
-                bool success = argparse_posint(args, 1, i);
+                const bool success = argparse_posint(args, 1, i);
                 UT_TRUE(success)
                 UT_EQUAL_INT(i, 12345)
             }
             UT_EQUAL_CSTR(args.token_at(2), "-128")
             {
                 int i = 0;
-                bool success = argparse_negint(args, 2, i);
+                const bool success = argparse_negint(args, 2, i);
                 UT_TRUE(success)
                 UT_EQUAL_INT(i, -128)
             }
             UT_EQUAL_CSTR(args.token_at(3), "12.0786")
             {
                 double d = 0.0;
-                bool success = argparse_double(args, 3, d);
+                const bool success = argparse_double(args, 3, d);
                 UT_TRUE(success)
                 UT_EQUAL_DOUBLE(d, 12.0786)
             }
             UT_EQUAL_CSTR(args.token_at(4), "-98.7654")
             {
                 double d = 0.0;
-                bool success = argparse_double(args, 4, d);
+                const bool success = argparse_double(args, 4, d);
                 UT_TRUE(success)
                 UT_EQUAL_DOUBLE(d, -98.7654)
             }
@@ -138,12 +141,14 @@ int test_04() {
         }
     }
 }
-void one_main_loop(const char* input)
+
+static void one_main_loop(const char* input)
 {
     saved_p = input;
 
     transport::Reader tpreader{};
-    while(1) {
+    tpreader.begin();
+    while(true) {
         tpreader.run();
         if(tpreader.available()) {
             transport::buffer::Handle bh = tpreader.borrow_buffer();
@@ -208,13 +213,16 @@ void one_main_loop(const char* input)
 
                 }
                 break;
+                default: ;
             }
             tpreader.return_buffer(bh);
             break;
         }
     }
 }
-int test_05() {
+
+static int test_05() {
+    printf("Entering test_05\n"); fflush(stdout);
     const char* test_input = 
         "pwm 80.0\0" " 87 \n"  
         "pwm 80.0\0" " 187 \n"
@@ -236,9 +244,16 @@ int test_05() {
 
 int main()
 {
+    printf("Before transport_init\n"); fflush(stdout);
+    transport::transport_init();
+    printf("Before trace_init_stdio\n"); fflush(stdout);
     trace_init_stdio();
-    printf("Hello world\n");
+    printf("Hello world\n"); fflush(stdout);
     // UT_ADD(test_01);
+    UT_ADD(test_04);
+    printf("Before UT_ADD\n"); fflush(stdout);
     UT_ADD(test_05);
+    printf("Before UT_RUN\n"); fflush(stdout);
     int rc = UT_RUN(); 
+    printf("After UT_RUN\n"); fflush(stdout);
 }

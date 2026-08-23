@@ -4,14 +4,17 @@
 set(AGNOSTIC_SOURCES
     cli/argv.cpp
     cli/commands.cpp
+    cli/execute_commands.cpp
     enum.cpp
     trace.cpp
     encoder_sample.cpp
+    encoder_debug.cpp
     pid.cpp
     transport/buffers.cpp
     transport/transmit_buffer_pool.cpp
     transport/transport.cpp
     transport/transport_reader.cpp
+        hw_utils.h
 )
 
 add_library(common_agnostic ${AGNOSTIC_SOURCES})
@@ -35,6 +38,9 @@ if(PICO_ON_DEVICE)
     add_library(common_firmware ${FIRMWARE_SOURCES})
     target_link_libraries(common_firmware PUBLIC common_agnostic pico_stdlib hardware_gpio hardware_pwm hardware_irq hardware_sync)
     
+    # Also link agnostic logic to pico_stdlib when on device
+    target_link_libraries(common_agnostic PUBLIC pico_stdlib)
+
     # Combined library for easier linking in Pico apps
     add_library(common_logic INTERFACE)
     target_link_libraries(common_logic INTERFACE common_firmware)

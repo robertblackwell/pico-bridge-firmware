@@ -36,8 +36,8 @@ using namespace transport::buffer;
 static void local_execute_commands(Argv& args, transport::buffer::Handle bh);
 void do_commands();
 void heart_beat();
-
 transport::Reader treader;
+#if 0
 DRI0002V1_4 dri0002{
 		MOTOR_RIGHT_DRI0002_SIDE, 
 		MOTOR_RIGHT_PWM_PIN, 				// E1
@@ -50,43 +50,30 @@ DRI0002V1_4 dri0002{
 Encoder* encoder_left_ptr;
 Encoder* encoder_right_ptr;
 MotionControl motion_controller{&dri0002, encoder_left_ptr, encoder_right_ptr};
-
+#endif
 void encoder_samples();
-
-static bool test_get_char_if_available(int* char_received) {
-	int ch = getchar_timeout_us(0);
-	if(ch == PICO_ERROR_TIMEOUT) {
-		// printf("get_char_if_available: no char timedout\n");
-		return false;
-	}
-	*char_received = ch;
-	// printf("get_char_if_available: got ch: %c decimal value of ch %d\n", (char)ch, ch);
-	return true;
-}
-
 int main()
 {
 	transport::transport_init();
 	treader.begin();
-	encoder_left_ptr = Encoder::encoder_left_start();
-	encoder_right_ptr = Encoder::encoder_right_start();
 
 	stdio_init_all();
 	stdio_set_translate_crlf(&stdio_usb, false);
 	trace_init();
 	sleep_ms(5000);
-//	print_fmt("bridge (version:%s ) starting ... \n", VERSION_NUMBER);
+	print_fmt("bridge (version:%s ) starting ... \n", VERSION_NUMBER);
+    printf("about to call robot::init() \n");
+    robot::init();
+
     transport::send_boot_message("bridge (version:%s ) starting ... \n", VERSION_NUMBER);
-	// robot_init();
 	Task cli_task(20, do_commands);
 	Task heart_beat_task(2000, heart_beat);
-	// Task collect_samples_task(200, &robot_collect_encoder_samples);
-	// robot_start_encoder_sample_collection((uint64_t)10000);
-	while (1)
+	robot::start();
+	while (true)
 	{
+		robot::poll();
 		cli_task();
 		heart_beat_task();
-		// collect_samples_task();
 	}
 }
 void heart_beat()

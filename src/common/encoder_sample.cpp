@@ -15,6 +15,15 @@ void tojson_two_encoder_samples(transport::buffer::Handle buffer_h, EncoderSampl
 void tojson_one_encoder_sample(transport::buffer::Handle buffer_h, EncoderSample* sample_ptr)
 {
     printf("tojon_one_encoder_sample\n");
+	printf("EncoderSample contains_data: %d\n", static_cast<int>(sample_ptr->s_contains_data));
+	printf("\ts_elapsed_usecs: %lu \n", sample_ptr->s_elapsed_usecs);
+	printf("\ts_sample_tick_count: %u \n", sample_ptr->s_sample_tick_count);
+	printf("\ts_direction %s\n", to_string(sample_ptr->s_direction));
+	printf("\ts_motor_rpm %f\n", sample_ptr->s_motor_rpm);
+	printf("\ts_wheel_rpm %f\n", sample_ptr->s_wheel_rpm);
+	printf("\ts_speed_mm_per_second %f\n", sample_ptr->s_speed_mm_per_second);
+	printf("\ts_wheel_travel_mm %f\n", sample_ptr->s_wheel_travel_mm);
+
 	size_t len;
 	const char* fmt = "{'name': '%s', 'timestamp':%lu,'musecs_per_interrupt':%9.3f,'motor_rpm': %6.3f,'wheel_rpm': %.3f, 'speed_mm_sec': %f}" ;
 	const char* fmt2 = "{'n': '%s','ts':%lu,'miq':%.3f,'mr':%9.3f,'wr':%6.3f,'sd':%.3f, 'ps':'%s'}" ;
@@ -28,6 +37,7 @@ void tojson_one_encoder_sample(transport::buffer::Handle buffer_h, EncoderSample
             // transport::buffer::sb_json_add(buffer_h, ", \"tk\":%d", sample_ptr->s_isr_saved_sample_tick_count);
             transport::buffer::sb_json_add(buffer_h, ", \"et\":%llu", sample_ptr->s_elapsed_usecs);
             transport::buffer::sb_json_add(buffer_h, ", \"ws\":%9.3f", sample_ptr->s_speed_mm_per_second);
+            transport::buffer::sb_json_add(buffer_h, ", \"ws m/s\":%9.5f", sample_ptr->s_speed_mm_per_second/1000.0);
             transport::buffer::sb_json_add(buffer_h, ", \"mr\":%9.3f", sample_ptr->s_motor_rpm);
             // transport::buffer::sb_json_add(buffer_h, ", \"ps\":%d", (uint8_t)sample_ptr->s_pin_state[0]);
         transport::buffer::sb_json_add(buffer_h, "}");

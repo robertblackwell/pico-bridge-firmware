@@ -7,7 +7,7 @@ add_executable(${TARGET}
 
 target_link_libraries(${TARGET} PRIVATE common_logic)
 
-target_compile_options(${TARGET} PRIVATE -Wformat)
+target_compile_options(${TARGET} PRIVATE -Wformat -pthread)
 
 target_compile_definitions(${TARGET}
     PUBLIC
@@ -19,5 +19,7 @@ target_include_directories(${TARGET}
         ../common
         ${FIRMWARE_COMMON_DIR}
 )
+
+target_link_options(${TARGET} PRIVATE -pthread)
 
 add_test(${TARGET} ${TARGET})

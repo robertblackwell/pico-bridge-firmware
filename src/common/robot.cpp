@@ -13,6 +13,7 @@
 #include "encoder_v2.h"
 #include "task.h"
 #include "motion.h"
+#include "wheel_speed_value.h"
 #include "transport/transport.h"
 #include "transport/buffers.h"
 #include "transport/transmit_buffer_pool.h"
@@ -32,6 +33,7 @@ static Encoder encoder_right{ MotorSide::right, MOTOR_RIGHT_NAME, MOTOR_RIGHT_EN
 static Encoder* encoder_left_ptr = &encoder_left;
 static Encoder* encoder_right_ptr = &encoder_right;
 
+static bool robot_pid_flag = false;
 static double robot_velocity_meters_per_second;
 static double robot_heading_radians;
 static double robot_position_x;
@@ -40,6 +42,10 @@ static double robot_left_rpm_target;
 static double robot_right_rpm_target;
 static double robot_left_wheel_velocity_target_ms;
 static double robot_right_wheel_velocity_target_ms;
+static WheelSpeedValue robot_left_wheel_velocity_target;
+static WheelSpeedValue robot_right_wheel_velocity_target;
+static WheelSpeedRequest robot_wheel_velocity_targets;
+
 static double robot_velocity_target_ms;
 static double robot_heading_degrees_target;
 static MotionControl motion_controller{};
@@ -58,6 +64,7 @@ void init()
     robot_position_x = 0.0;
     robot_position_y = 0.0;
     robot_left_rpm_target = 0.0;
+    robot_pid_flag = false;
     printf("init leaving encoder_left_ptr: %p encoder_right_ptr:%p \n", encoder_left_ptr, encoder_right_ptr);
 }
 Encoder* get_encoder(const DriveSide side)
@@ -86,6 +93,11 @@ void set_pwm_percent(const double left_pwm_percent, const double right_pwm_perce
 {
     motion_controller.set_pwm_percent(left_pwm_percent, right_pwm_percent);
 }
+void pid_toggle()
+{
+    printf("robot::pid_taggle current: %d\n", static_cast<int>(robot_pid_flag));
+    robot_pid_flag = !robot_pid_flag;
+}
 static double velocity_normalize(const double v)
 {
     if (-SCL_MIN_VELOCITY <= v && v <= SCL_MAX_VELOCITY) {
@@ -99,28 +111,23 @@ static double velocity_normalize(const double v)
     }
 
 }
-bool set_wheel_velocity_ms(const double left_velocity_target_ms, const double right_velocity_target_ms)
+SetWheelVelocityStatus set_wheel_velocity_ms(const double left_velocity_target_ms, const double right_velocity_target_ms)
 {
-
-    double lv;
-    bool   lv_flag;
-    if (fabs(left_velocity_target_ms) > SCL_MIN_VELOCITY) {
-        if (fabs(left_velocity_target_ms) <= SCL_MAX_VELOCITY) {
-            lv = left_velocity_target_ms;
-            lv_flag = true;
-        } else {
-            lv = SCL_MAX_VELOCITY;
-            lv_flag = true;
-        }
-    } else {
-        lv = 0.0;
-        lv_flag = false;
+    if (!robot_pid_flag) {
+        return SetWheelVelocityStatus::PidNotActive;
     }
+    const WheelSpeedValue new_left{left_velocity_target_ms};
+    const WheelSpeedValue new_right{right_velocity_target_ms};
+    if (!robot_left_wheel_velocity_target.update_permitted(new_left)) {
+        return SetWheelVelocityStatus::LeftUpdateInvalid;
+    }
+    if (!robot_right_wheel_velocity_target.update_permitted(new_right)) {
+        return SetWheelVelocityStatus::RightUpdateInvalid;
+    }
+    robot_left_wheel_velocity_target = new_left;
+    robot_right_wheel_velocity_target = new_right;
 
-    double rv = (fabs(left_velocity_target_ms) > SCL_MIN_VELOCITY)?  left_velocity_target_ms : 0.0;
-    robot_left_wheel_velocity_target_ms = left_velocity_target_ms;
-    robot_right_wheel_velocity_target_ms = right_velocity_target_ms;
-    return true;
+    return SetWheelVelocityStatus::Ok;
 }
 bool set_rpm(const double left_rpm, const double right_rpm)
 {
@@ -132,6 +139,7 @@ void stop_all()
 {
     set_wheel_velocity_ms(0.0, 0.0);
     motion_controller.stop_all();
+    robot_pid_flag = false;
 }
 void tojson_encoder_samples(transport::buffer::Handle buffer_h)
 {
@@ -160,6 +168,15 @@ void start()
 }
 void poll()
 {
+    if (! robot_pid_flag) {
+        // printf("robot::poll pid not enabled\n");
+        return;
+    }
+    if (robot_pid_flag && robot_left_wheel_velocity_target.is_zero && robot_right_wheel_velocity_target.is_zero) {
+        motion_controller.set_raw_pwm_percent(0.0, 0.0);
+        // printf("robot::poll target velocity is zero for both\n");
+        return;
+    }
     const uint64_t now = to_ms_since_boot(get_absolute_time());
     if(now >= last_poll_time_ms + poll_interval_ms) {
         Encoder::unsafe_collect_two_encoder_samples(
@@ -177,16 +194,25 @@ void poll()
         robot_velocity_meters_per_second = 0.5 * (sleft.s_speed_mm_per_second + sright.s_speed_mm_per_second);
         robot_heading_radians = (sright.s_speed_mm_per_second - sleft.s_speed_mm_per_second) / ISR_AXLE_LENGTH_MM;
 
-        const double left_new_pwm = left_speed_control.next_pwm_estimate(robot_left_wheel_velocity_target_ms, (sleft.s_speed_mm_per_second/1000.0));
-        const double right_new_pwm = right_speed_control.next_pwm_estimate(robot_right_wheel_velocity_target_ms, (sright.s_speed_mm_per_second/1000.0));
-        printf("left_new_pwm: %f\n", left_new_pwm);
-        printf("right_new_pwm: %f\n", right_new_pwm);
-        motion_controller.set_raw_pwm_percent(left_new_pwm, right_new_pwm);
+        const double left_new_pwm = left_speed_control.next_pwm_estimate(
+            robot_left_wheel_velocity_target.unsigned_value(),
+            (sleft.s_speed_mm_per_second/1000.0));
+
+        const double right_new_pwm = right_speed_control.next_pwm_estimate(
+            robot_right_wheel_velocity_target.unsigned_value(),
+            (sright.s_speed_mm_per_second/1000.0));
+
+        const double signed_left_new_pwm = (robot_left_wheel_velocity_target.direction == MotorDirection::forward) ? left_new_pwm: -1.0*left_new_pwm;
+        const double signed_right_new_pwm = (robot_right_wheel_velocity_target.direction == MotorDirection::forward) ? right_new_pwm: -1.0*right_new_pwm;
+        // printf("left_new_pwm: %f signed_left_new_pwm: %f\n", left_new_pwm, signed_left_new_pwm);
+        // printf("right_new_pwm: %f signed_right_new_pwm: %f\n", right_new_pwm, signed_right_new_pwm);
+
+        motion_controller.set_raw_pwm_percent(signed_left_new_pwm, signed_right_new_pwm);
 
 
-        printf("Robot twist vel mm/sec: %f theta (radians/sec): %f\n", robot_velocity_meters_per_second, robot_heading_radians);
-        printf("Robot rpm_left:      %f \trpm_right:      %f \n", sleft.s_wheel_rpm, sright.s_wheel_rpm);
-        printf("Robot vel_left(m/s): %f \tvel_right(m/s): %f \n", (sleft.s_speed_mm_per_second/1000.0), (sright.s_speed_mm_per_second/1000.0));
+        // printf("Robot twist vel mm/sec: %f theta (radians/sec): %f\n", robot_velocity_meters_per_second, robot_heading_radians);
+        // printf("Robot rpm_left:      %f \trpm_right:      %f \n", sleft.s_wheel_rpm, sright.s_wheel_rpm);
+        // printf("Robot vel_left(m/s): %f \tvel_right(m/s): %f \n", (sleft.s_speed_mm_per_second/1000.0), (sright.s_speed_mm_per_second/1000.0));
         // transport::buffer::Handle h = transport::buffer::tx_pool::allocate();
         // tojson_two_encoder_samples(h, &encoder_left_ptr->m_sample, &encoder_right_ptr->m_sample);
         // transport::send_json_response(&h);

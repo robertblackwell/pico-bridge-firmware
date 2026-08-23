@@ -1,25 +1,18 @@
 #undef FTRACE_ON
 #include <functional>
-#include <stdio.h>
+#include <cstdio>
+#if PICO_ON_DEVICE
 #include <pico/stdlib.h>
-#include <hardware/gpio.h>
-#include <hardware/pwm.h>
-#include <tusb.h>
-
+#endif
+#include "hw_utils.h"
 #include "trace.h"
-#include "dri0002.h"
-#include "config.h"
-#include "encoder_v2.h"
 #include "task.h"
-#include "motion.h"
-#include "reporter.h"
 #include "cli/argv.h"
 #include "cli/commands.h"
 #include "transport/buffers.h"
 #include "transport/transmit_buffer_pool.h"
 #include "transport/transport.h"
 #include "robot.h"
-
 
 using namespace transport::buffer;
 void execute_commands(Argv& args, transport::buffer::Handle bh)
@@ -41,7 +34,7 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
         case CommandName::MotorsPwmPercent: {
             double left_pwm, right_pwm;
             if(validate_pwm(args, left_pwm, right_pwm)) {
-                robot_set_raw_pwm_percent(left_pwm, right_pwm);
+                robot::set_raw_pwm_percent(left_pwm, right_pwm);
                 transport::send_command_ok("MotorPwmPercent %f  %f", left_pwm, right_pwm);
             } else {
                 transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
@@ -52,7 +45,7 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
             double left_rpm, right_rpm;
             if(validate_rpm(args, left_rpm, right_rpm)) {
                 printf("%f %f\n", left_rpm, right_rpm);
-                if(robot_set_rpm(left_rpm, right_rpm)) {
+                if(robot::set_rpm(left_rpm, right_rpm)) {
                     transport::send_command_ok("MotorRpmCommand");
                 } else {
                     transport::send_command_error("Command %s failed probably trying to change direction without stopping\n", to_string(enumname), sb_buffer_as_cstr(bh));
@@ -65,7 +58,7 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
         case CommandName::MotorsHalt: {
             if(validate_encoder_read(args)) {
                 printf("%s\n", to_string(enumname));
-                robot_stop_all();
+                robot::stop_all();
                 transport::send_command_ok("StopCommand");
             } else {
                 transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
@@ -78,7 +71,7 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
             if(validate_encoder_read(args)) {
                 // printf("%s\n", to_string(enumname));
                 Handle h = tx_pool::allocate();
-                tojson_encoder_samples(h);
+                robot::tojson_encoder_samples(h);
                 transport::send_json_response(&h);
                 // printf("End of read encoder cmd \n");
             } else {
@@ -122,7 +115,9 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
                 for(int i = 0; i < count; i++) {
                     uint64_t  m = micros();
                     transport::send_command_ok("Loadtest time: %ld count: %i interval: %d [%s]", m, i, interval_ms, response_source);
+                    #if PICO_ON_DEVICE
                     sleep_ms(interval_ms);
+                    #endif
                 }
                 uint64_t  end_time = micros();
                 transport::send_command_ok("Elapsed time %llu micro seconds", (end_time - start_time));
@@ -132,16 +127,37 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
             break;
         }
         case CommandName::SoftwareReset:
-            *((volatile uint32_t*)(PPB_BASE + 0x0ED0C)) = 0x5FA0004;
+            HwUtils::pico_reset();
+            // *((volatile uint32_t*)(PPB_BASE + 0x0ED0C)) = 0x5FA0004;
             break;
+
+        case CommandName::WheelVelocity: {
+            double left_vel, right_vel;
+            if(validate_wheel_velocity( args, left_vel, right_vel)) {
+                auto status = robot::set_wheel_velocity_ms(left_vel, right_vel);
+                if (status == robot::SetWheelVelocityStatus::Ok)
+                    transport::send_command_ok("WheelVelocity %f  %f", left_vel, right_vel);
+                else
+                    transport::send_command_error("WheelVelocity %f  %f status: %s", left_vel, right_vel, to_string(status));
+            } else {
+                transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
+            }
+            break;
+        }
+        case CommandName::PidOnOff:
+            robot::pid_toggle();
+            break;
+
         case CommandName::Help:
             printf("Commands: \n");
+            printf("    v/vel left      right       Set wheel velocity for each wheel m/s -0.11 +.11\n");
             printf("    w/pwm left      right       Set pwm percentage for each motors, values in range -100 .. 100\n");
             printf("    r/rpm left_rpm  right_rpm   Set speed of each motor in revs per minute\n");
             printf("    s                           Stop both motors \n");
             printf("    e                           Read both encoders\n");
             printf("    c                           Echo what ever follows the 'c'\n");
             printf("    b                           Software Reset\n");
+            printf("    p                           Toggle pid controller on/off\n");
             printf("    ?                           Help - print this message\n");
         
         default: {
@@ -151,6 +167,7 @@ void execute_commands(Argv& args, transport::buffer::Handle bh)
         }
 
     }
+
 
     #endif
 }

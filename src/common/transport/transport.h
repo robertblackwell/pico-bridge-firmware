@@ -1,6 +1,6 @@
 #ifndef H_transport_h
 #define H_transport_h
-#include <stdio.h>
+#include <cstdio>
 #include "buffers.h"
 #include "cli/argv.h"
 /**
@@ -35,22 +35,35 @@ enum Channel {
 void transport_init();
 
 struct Reader {
+
+    Reader();
+
+    /** begin must be called to allocate an internal buffer */
     void begin();
     ~Reader();
     void run();
-    bool available();
-    
+
+    [[nodiscard]] bool available() const;
+
     // void consume(Argv& argv);
 
     // Gives you a buffer of input data - caller must deallocate
     // the buffer after use.
     transport::buffer::Handle consume();
+    /** This function borrows the buffer from the transport module in order to parse the contents.
+     * But will return the buffer after parsiing.
+     */
     transport::buffer::Handle borrow_buffer();
-    void  return_buffer(transport::buffer::Handle bh);
+    /**
+     * Signals to transport that the consumer is done with the buffer
+     * and will not use it again after this call. After the call the buffer handle is invalid.
+     * @param bh
+     */
+    void  return_buffer(transport::buffer::Handle& bh);
 
-    int                     m_state;
+    int                         m_state;
     transport::buffer::Handle   m_buffer_handle{};
-    bool                    m_chars_available;
+    bool                        m_chars_available;
 };
 
 void send_command_ok(const char* fmt, ...);

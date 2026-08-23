@@ -113,7 +113,7 @@ Encoder::Encoder(const MotorSide side, const char* name, const int encoder_a_pin
     m_sample_interval_usecs = 0;
     m_a_pin_saved_count = 0;
     m_b_pin_saved_count = 0;
-    m_sample.s_available = false;
+    m_sample.s_contains_data = false;
     m_current_sample_time_usecs = 0;
 }
 void Encoder::init(uint64_t current_time_us)
@@ -157,7 +157,7 @@ static void print_sample(const char* tag, const EncoderSample& sample);
 #endif
 
 void update_sample_from_isr(EncoderSample& sample);
-void fill_sample(EncoderSample& sample, uint64_t sample_time, uint64_t previous_sample_time_usecs, uint32_t sample_tick_count);
+void fill_sample(EncoderSample& sample, uint64_t sample_time, uint64_t previous_sample_time_usecs, uint32_t sample_tick_count, MotorDirection direction);
 
 /**
  * WARNING - This function turns off interrupts
@@ -245,26 +245,38 @@ void Encoder::unsafe_collect_two_encoder_samples(
     const auto left_sample_tick_count =
             (left_encoder.m_a_pin_saved_count - left_encoder.m_a_pin_isr_previous_count)
         +   (left_encoder.m_b_pin_saved_count - left_encoder.m_b_pin_isr_previous_count);
-    fill_sample(left_sample, left_encoder.m_current_sample_time_usecs, left_encoder.m_previous_sample_time_usecs, left_sample_tick_count);
+    fill_sample(left_sample,
+        left_encoder.m_current_sample_time_usecs,
+        left_encoder.m_previous_sample_time_usecs,
+        left_sample_tick_count,
+        left_direction);
     PRINT_SAMPLE("after fill_sample left_sample", left_sample);
 
     PRINT_ENCODER("Before right fill sample", right_encoder);
     const auto right_sample_tick_count =
             (raw_right_a_count - right_encoder.m_a_pin_isr_previous_count)
         +   (raw_right_b_count - right_encoder.m_b_pin_isr_previous_count);
-    fill_sample(right_sample, right_encoder.m_current_sample_time_usecs, right_encoder.m_previous_sample_time_usecs, right_sample_tick_count);
+    fill_sample(right_sample,
+        right_encoder.m_current_sample_time_usecs,
+        right_encoder.m_previous_sample_time_usecs,
+        right_sample_tick_count,
+        right_direction);
     PRINT_SAMPLE("after fill_sample right_sample", right_sample);
     PRINT_END
 }
-void fill_sample(EncoderSample& sample, const uint64_t sample_time, const uint64_t previous_sample_time_usecs, const uint32_t sample_tick_count)
+void fill_sample(EncoderSample& sample, const uint64_t sample_time, const uint64_t previous_sample_time_usecs, const uint32_t sample_tick_count, MotorDirection direction)
 {
     if (sample_tick_count == 0) {
+        sample.s_contains_data = false;
         sample.s_elapsed_usecs = sample_time - previous_sample_time_usecs;
         sample.s_sample_tick_count = sample_tick_count;
         sample.s_motor_rpm = 0.0;
         sample.s_wheel_rpm = 0.0;
         sample.s_speed_mm_per_second = 0.0;
+        sample.s_direction = direction;
     } else {
+        sample.s_contains_data = true;
+        sample.s_direction = direction;
         sample.s_elapsed_usecs = sample_time - previous_sample_time_usecs;
         sample.s_sample_tick_count = sample_tick_count;
         const double left_sample_interval_secs = static_cast<double>(sample.s_elapsed_usecs)/1000000.0;
@@ -340,13 +352,13 @@ void print_encoder(const char* tag, const Encoder& encoder)
     printf("\tm_current_sample_time_usecs: %" PRId64 "\n", encoder.m_current_sample_time_usecs);
     printf("\telapsed: %" PRId64 " us\n", encoder.m_current_sample_time_usecs - encoder.m_previous_sample_time_usecs);
 }
+
 void print_sample(const char* tag, const EncoderSample& sample)
 {
     printf("%s EncoderSample\n", tag);
     printf("\ts_elapsed_usecs: %llu \n", sample.s_elapsed_usecs);
     printf("\ts_sample_tick_count: %lu \n", sample.s_sample_tick_count);
-    printf("\ts_motor_revs %f\n", sample.s_motor_revs);
-    printf("\ts_wheel_revs %f\n", sample.s_wheel_revs);
+    printf("\ts_direction %s\n", to_string(sample.s_direction));
     printf("\ts_motor_rpm %f\n", sample.s_motor_rpm);
     printf("\ts_wheel_rpm %f\n", sample.s_wheel_rpm);
     printf("\ts_speed_mm_per_second %f\n", sample.s_speed_mm_per_second);

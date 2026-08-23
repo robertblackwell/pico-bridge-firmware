@@ -15,16 +15,16 @@ bool motor_direction_to_pin_state(MotorSide side, MotorDirection md)
 	printf("motor_direction_to_pin_state side : %s md: %s r : %d\n", to_string(side), motor_direction_to_string(md), (int)r);
 	return r;
 }
-const char* motor_direction_to_string(MotorDirection md)
+const char* motor_direction_to_string(const MotorDirection md)
 {
 	return (md == MotorDirection::forward) ? "F" : "B";
 }
-const char* to_string(MotorDirection md)
+const char* to_string(const MotorDirection md)
 {
 	return (md == MotorDirection::forward) ? "F" : "B";
 }
 
-const char* to_string(MotorSide side)
+const char* to_string(const MotorSide side)
 {
 	return (side == MotorSide::left) ? "L": "R";
 }

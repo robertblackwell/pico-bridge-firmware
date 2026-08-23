@@ -8,47 +8,49 @@
  */
 struct WheelSpeedValue
 {
-    double value{};
+    double abs_value{};
     MotorDirection direction;
     bool is_zero{};
     WheelSpeedValue(): direction(MotorDirection::backwards), is_zero(true){}
     explicit WheelSpeedValue(const double raw_value){
 
         if(((-1.0 * SCL_MIN_VELOCITY) < raw_value) && (raw_value < SCL_MIN_VELOCITY)) {
-            value = 0.0;
+            abs_value = 0.0;
             is_zero = true;
             direction = MotorDirection::forward;
         } else if (raw_value < -1.0 * SCL_MAX_VELOCITY) {
-            value = -1.0* SCL_MAX_VELOCITY;
+            abs_value = SCL_MAX_VELOCITY;
             is_zero = false;
             direction = MotorDirection::backwards;
         } else if (SCL_MAX_VELOCITY < raw_value) {
-            value = SCL_MAX_VELOCITY;
+            abs_value = SCL_MAX_VELOCITY;
             is_zero = false;
             direction = MotorDirection::forward;
         } else if(raw_value < 0.0) {
-            value = -1.0 * raw_value;
+            abs_value = fabs(raw_value);
             is_zero = false;
             direction = MotorDirection::backwards;
         } else {
-            value = raw_value;
+            abs_value = raw_value;
             is_zero = false;
             direction = MotorDirection::forward;
         }
     }
     WheelSpeedValue(const WheelSpeedValue &other) :direction(other.direction), is_zero(other.is_zero)
     {
-        value = other.value;
+        abs_value = other.abs_value;
     }
 
     /**
      * Returns the wheel speed as a double positive or zero value.
      * @return
      */
-    [[nodiscard]] double raw_double_value() const{
-        return static_cast<double>(direction) * value;
+    [[nodiscard]] double unsigned_value() const{
+        return abs_value;
     }
-
+    [[nodiscard]] double signed_value() const {
+        return static_cast<double>(direction) * abs_value;
+    }
     /**
      * This function will check to see if the change of wheel speed is valid: change of direction must go
      * through zero speed. If valid will return true and apply the update. If not valid return false and
@@ -56,7 +58,7 @@ struct WheelSpeedValue
      * @param new_wheel_speed
      * @return
      */
-    bool update_permitted(const WheelSpeedValue new_wheel_speed) const {
+    [[nodiscard]] bool update_permitted(const WheelSpeedValue new_wheel_speed) const {
         if ((new_wheel_speed.is_zero)||(is_zero)) {
             // value = new_wheel_speed.value;
             // is_zero = new_wheel_speed.is_zero;

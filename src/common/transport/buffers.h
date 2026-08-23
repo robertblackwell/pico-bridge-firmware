@@ -1,19 +1,17 @@
 #ifndef H_transport_buffer_h
 #define H_transport_buffer_h
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-#include <stdint.h>
+#include <cstdio>
+#include <cstdint>
 #include "trace.h"
 
 namespace transport::buffer {
 
     struct Header {
-        Header(void *memptr, size_t capacity) {
+        Header(void *memptr, const size_t capacity) {
             m_available = true;
             m_capacity = capacity;
             m_used_length = 0;
-            m_buffer_ptr = (char *) memptr;
+            m_buffer_ptr = static_cast<char *>(memptr);
             m_next_available_p = m_buffer_ptr;
             m_buffer_as_str = m_buffer_ptr;
         }
@@ -38,7 +36,7 @@ namespace transport::buffer {
     template<int const N>
     struct Buffer {
         Handle get_handle() {
-            return (Handle) (&(this->m_header));
+            return static_cast<Handle>(&(this->m_header));
         }
 
         Buffer(): m_header(&m_mem[0], N) {
@@ -53,12 +51,14 @@ namespace transport::buffer {
         Pool() {
             m_size = SIZE;
             m_number = HOWMANY;
+            m_number_available = HOWMANY;
             for (int i = 0; i < HOWMANY; i++) {
                 m_buffers[i].m_header.m_available = true;
             }
         }
 
         int m_size;
+        int m_number_available;
         int m_number;
         Buffer<SIZE> m_buffers[HOWMANY];
 
@@ -67,6 +67,7 @@ namespace transport::buffer {
                 Header *tbph = &(m_buffers[i].m_header);
                 if (tbph->m_available) {
                     tbph->m_available = false;
+                    m_number_available--;
                     return (Handle) (tbph);
                 }
             }
@@ -74,7 +75,7 @@ namespace transport::buffer {
             return nullptr;
         }
 
-        void deallocate(Handle tbh) {
+        void deallocate(Handle& tbh) {
             auto *tbph = (Header *) tbh;
             ASSERT(tbph != nullptr);
             ASSERT((tbph)->m_available == false);
@@ -82,6 +83,8 @@ namespace transport::buffer {
             tbph->m_used_length = 0;
             tbph->m_next_available_p = tbph->m_buffer_ptr;
             tbph->m_buffer_as_str = tbph->m_next_available_p;
+            m_number_available++;
+            tbh = nullptr;
         }
     };
     

@@ -20,4 +20,5 @@ MotorDirection reverse_motor_direction(MotorDirection dir);
 bool motor_direction_to_pin_state(MotorSide side, MotorDirection md);
 const char* motor_direction_to_string(MotorDirection md);
 const char* to_string(MotorSide side);
+const char* to_string(MotorDirection dir);
 #endif

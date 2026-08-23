@@ -1,6 +1,6 @@
 .pio/*
-build/
-**/build/
+build*/
+**/build*/
 cmake-build-debug/
 **/cmake-build-debug/
 **/junk/

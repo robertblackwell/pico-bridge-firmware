@@ -44,7 +44,7 @@ char static tolower(char c) {
 }
 
 namespace transport {
-
+Reader::Reader():m_state(TRANSPORT_STATE_START), m_buffer_handle(nullptr), m_chars_available(false){}
 void Reader::begin()
 {
     m_state = TRANSPORT_STATE_START;
@@ -122,16 +122,15 @@ void Reader::run()
 */
 void Reader::run()
 {
+    ASSERT_MSG((m_buffer_handle != nullptr), "Reader::run() m_buffer_handle is nullptr. Did you forget to call begin()");
     if(m_state == TRANSPORT_STATE_LINE_AVAILABLE)
         return;
     int chin;
-    char ch;
-    
+
     while(get_char_if_available(&chin)) {
         // printf("reader.run chin: %d\n", chin);
         m_state = TRANSPORT_STATE_READING_LINE;
-        ch = tolower(chin);
-        if((ch == '\n') || (transport::buffer::sb_space_remaining(m_buffer_handle) <= 2)) {
+        if(char ch = tolower(static_cast<char>(chin)); (ch == '\n') || (transport::buffer::sb_space_remaining(m_buffer_handle) <= 2)) {
             m_state = TRANSPORT_STATE_LINE_AVAILABLE;
             return;
         }else if (ch == '\r') {
@@ -141,10 +140,9 @@ void Reader::run()
             transport::buffer::sb_append(m_buffer_handle, ch);
         }
     }
-    return;
 }
 #endif
-bool Reader::available()
+bool Reader::available() const
 {
     // printf("reader.available m_state: %d\n", m_state);
     return (m_state == TRANSPORT_STATE_LINE_AVAILABLE);
@@ -163,11 +161,12 @@ transport::buffer::Handle Reader::borrow_buffer()
     m_state = TRANSPORT_STATE_START;
     return m_buffer_handle;
 }
-void Reader::return_buffer(transport::buffer::Handle bh)
+void Reader::return_buffer(transport::buffer::Handle& bh)
 {
     ASSERT(bh == m_buffer_handle);
     transport::buffer::sb_reset(m_buffer_handle);
-    m_state == TRANSPORT_STATE_START;
+    m_state = TRANSPORT_STATE_START;
+    bh = nullptr;
 }
 
 } // namespace transport

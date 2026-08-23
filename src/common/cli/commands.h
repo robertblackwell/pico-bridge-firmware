@@ -28,6 +28,8 @@
 #define CLI_COMMAND_RESET_ENCODERS      9   // reset the encoder recording of ticks 
 #define CLI_COMMAND_TAG_ECHO            10
 #define CLI_COMMAND_TAG_LOADTEST        11
+#define CLI_COMMAND_PID_ONOFF           14
+
 
 enum class CommandName
 {
@@ -44,6 +46,7 @@ enum class CommandName
     LoadTest = 'l',
     Help = '?',
     SoftwareReset = 'b',
+    PidOnOff = 'p',
 };
 inline const char* to_string(CommandName en)
 {
@@ -87,6 +90,9 @@ inline const char* to_string(CommandName en)
             break;
         case CommandName::SoftwareReset:
             s = "SoftwareReset";
+            break;
+        case CommandName::PidOnOff:
+            s = "PidOnOff";
     }
     return s;
 }

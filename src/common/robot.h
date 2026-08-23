@@ -7,6 +7,21 @@
 #include "speed_control.h"
 
 namespace robot {
+    enum class SetWheelVelocityStatus {
+        Ok,
+        PidNotActive,
+        LeftUpdateInvalid,
+        RightUpdateInvalid
+    };
+    constexpr const char* to_string(SetWheelVelocityStatus status) {
+        switch (status) {
+            case SetWheelVelocityStatus::Ok: return "Ok";
+            case SetWheelVelocityStatus::PidNotActive: return "PidNotActive";
+            case SetWheelVelocityStatus::LeftUpdateInvalid: return "LeftUpdateInvalid";
+            case SetWheelVelocityStatus::RightUpdateInvalid: return "RightUpdateInvalid";
+            default: return "Unknown";
+        }
+    }
     /**
      * Initializes all the data structures representing the hardware. All this is hidden inside robot::init
      */
@@ -38,8 +53,10 @@ namespace robot {
      * @param right_velocity_target_ms
      * @return
      */
-    bool set_wheel_velocity_ms(double left_velocity_target_ms, double right_velocity_target_ms);
-
+    SetWheelVelocityStatus set_wheel_velocity_ms(double left_velocity_target_ms, double right_velocity_target_ms);
+    /** Toggles the PID controller on and off. When on wheel speed commands are processed.
+    */
+    void pid_toggle();
     /**
     * Is the equivalent of set_raw_pwm(0.0, 0.0)
     * In addition sets wheel velocity targets to zero.

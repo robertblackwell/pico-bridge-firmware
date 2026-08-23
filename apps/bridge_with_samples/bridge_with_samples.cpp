@@ -134,16 +134,6 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
             }
             break;
         }
-        case CommandName::WheelVelocity: {
-            double left_vel, right_vel;
-            if(validate_wheel_velocity( args, left_vel, right_vel)) {
-                robot::set_wheel_velocity_ms(left_vel, right_vel);
-                transport::send_command_ok("WheelVelocity %f  %f", left_vel, right_vel);
-            } else {
-                transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
-            }
-            break;
-        }
         case CommandName::MotorsRpm: {
             double left_rpm, right_rpm;
             if(validate_rpm(args, left_rpm, right_rpm)) {
@@ -230,8 +220,21 @@ static void local_execute_commands(Argv& args, transport::buffer::Handle bh)
         case CommandName::SoftwareReset:
             *((volatile uint32_t*)(PPB_BASE + 0x0ED0C)) = 0x5FA0004;
             break;
+
+        case CommandName::WheelVelocity: {
+            double left_vel, right_vel;
+            if(validate_wheel_velocity( args, left_vel, right_vel)) {
+                robot::set_wheel_velocity_ms(left_vel, right_vel);
+                transport::send_command_ok("WheelVelocity %f  %f", left_vel, right_vel);
+            } else {
+                transport::send_command_error("Invalid %s command %s\n", to_string(enumname), sb_buffer_as_cstr(bh));
+            }
+            break;
+        }
+
         case CommandName::Help:
             printf("Commands: \n");
+            printf("    v/vel left      right       Set wheel velocity for each wheel m/s -0.11 +.11\n");
             printf("    w/pwm left      right       Set pwm percentage for each motors, values in range -100 .. 100\n");
             printf("    r/rpm left_rpm  right_rpm   Set speed of each motor in revs per minute\n");
             printf("    s                           Stop both motors \n");

@@ -210,25 +210,26 @@ CommandName command_lookup(const char* first_arg) {
         CommandName cmd;
     };
     static TableEntry table[] = {
-        {"c",  "echo",    CLI_COMMAND_TAG_ECHO,          CommandName::Echo},
-        {"s",  "stop",    CLI_COMMAND_TAG_STOP,          CommandName::MotorsHalt},
-        {"w",  "pwm",     CLI_COMMAND_MOTOR_PERCENT_PWM, CommandName::MotorsPwmPercent},
-        {"v",  "vw",      CLI_COMMAND_WHEEL_VELOCITY,    CommandName::WheelVelocity},
+        {.short_name = "c",  .long_name = "echo",   .tag = CLI_COMMAND_TAG_ECHO,            .cmd = CommandName::Echo},
+        {.short_name = "s",  .long_name = "stop",   .tag = CLI_COMMAND_TAG_STOP,            .cmd = CommandName::MotorsHalt},
+        {.short_name = "w",  .long_name = "pwm",    .tag = CLI_COMMAND_MOTOR_PERCENT_PWM,   .cmd = CommandName::MotorsPwmPercent},
+        {.short_name = "v",  .long_name = "vw",     .tag = CLI_COMMAND_WHEEL_VELOCITY,      .cmd = CommandName::WheelVelocity},
 
-        {"m",  "motor",   CLI_COMMAND_MOTOR_SPEED,       CommandName::MotorsRpm}, // rpw
-        {"r",  "rpm",     CLI_COMMAND_MOTOR_RPM,         CommandName::MotorsRpm},
+        {.short_name = "m",  .long_name = "motor",  .tag = CLI_COMMAND_MOTOR_SPEED,         .cmd = CommandName::MotorsRpm}, // rpw
+        {.short_name = "r",  .long_name = "rpm",    .tag = CLI_COMMAND_MOTOR_RPM,           .cmd = CommandName::MotorsRpm},
 
-        {"t",  "stop",    CLI_COMMAND_TAG_STOP,          CommandName::MotorsHalt},
+        {.short_name = "t",  .long_name = "stop",   .tag = CLI_COMMAND_TAG_STOP,            .cmd = CommandName::MotorsHalt},
 
-        {"u",  "upid",    CLI_COMMAND_UPDATE_PIDARGS,    CommandName::PidArgsUpdate},
-        {"e",  "encoder", CLI_COMMAND_READ_ENCODERS,     CommandName::EncodersRead},
-        {"es", "encoder", CLI_COMMAND_READ_ENCODERS,     CommandName::EncodersStream},
-        {"l",  "load",    CLI_COMMAND_TAG_LOADTEST,      CommandName::LoadTest},
-        {"?",  "help",    CLI_COMMAND_TAG_LOADTEST,      CommandName::Help},
-        {"b",  "reset",   CLI_COMMAND_TAG_NONE,          CommandName::SoftwareReset},
-        {"x",  "raw",     CLI_COMMAND_TAG_NONE,          CommandName::None},
+        {.short_name = "u",  .long_name = "upid",   .tag = CLI_COMMAND_UPDATE_PIDARGS,      .cmd = CommandName::PidArgsUpdate},
+        {.short_name = "e",  .long_name = "encoder",.tag = CLI_COMMAND_READ_ENCODERS,       .cmd = CommandName::EncodersRead},
+        {.short_name = "es", .long_name = "encoder",.tag = CLI_COMMAND_READ_ENCODERS,       .cmd = CommandName::EncodersStream},
+        {.short_name = "l",  .long_name = "load",   .tag = CLI_COMMAND_TAG_LOADTEST,        .cmd = CommandName::LoadTest},
+        {.short_name = "?",  .long_name = "help",   .tag = CLI_COMMAND_TAG_LOADTEST,        .cmd = CommandName::Help},
+        {.short_name = "b",  .long_name = "reset",  .tag = CLI_COMMAND_TAG_NONE,            .cmd = CommandName::SoftwareReset},
+        {.short_name = "p",  .long_name = "pid",    .tag = CLI_COMMAND_PID_ONOFF,           .cmd = CommandName::PidOnOff},
+        {.short_name = "x",  .long_name = "raw",    .tag = CLI_COMMAND_TAG_NONE,            .cmd = CommandName::None},
 
-        NULL
+        nullptr
     };
     // log_print("lookup ", first_arg, "\n");
     for(int i = 0; *(table[i].short_name) != 'x'; i++) {
